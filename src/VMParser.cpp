@@ -213,10 +213,12 @@ void VMParser::printAllTokens() {
 	Token tkn;
 	for (int i = 0; i < getTokenCount(); i++) {
 		tkn = getToken(i);
-		printf("Token: %.*s", (uint32_t)tkn.length, tkn.text);
-		printf("\tlength=%d", (uint32_t)tkn.length);
-		printf("\ttype=%s", TOKEN_TYPE_MNEMONIC[(int)tkn.type]);
-		printf("\tLine=%d", tkn.row);
-		printf("\tCol=%d\n", tkn.col);
+		cout << "Line=" << tkn.row << " Col=" << tkn.col << "\t";
+		cout << "'";
+		cout.write(tkn.text, tkn.length);
+		cout << "'";
+		cout << "\t" << "length: " << tkn.length;
+		cout << "\ttype=: " << TOKEN_TYPE_MNEMONIC[(int)tkn.type] << endl;
+
 	}
 }
