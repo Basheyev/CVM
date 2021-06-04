@@ -1,6 +1,6 @@
 /*============================================================================
 *
-*  Virtual Machine Parser class implementation
+*  Source Code Parser class implementation
 *
 *  (C) Bolat Basheyev 2021
 *
@@ -28,8 +28,9 @@ VMParser::~VMParser() {
 
 void VMParser::parseToTokens(const char* sourceCode) {
 
+	TokenType isNumber = TokenType::UNKNOWN;
 	bool insideString = false;                                         // inside string flag
-	bool insideNumber = false;                                         // inside number flag
+	bool isReal = false;                                               // is real number flag
 	size_t length;                                                     // token length variable
 
 	char nextChar;                                                     // next char variable
@@ -46,8 +47,13 @@ void VMParser::parseToTokens(const char* sourceCode) {
 	while (value != NULL) {                                            // while not end of string
 		blank = isBlank(value);                                        // is blank char found?
 		delimeter = isDelimeter(value);                                // is delimeter found?
-		if ((blank || delimeter) && !insideString) {                   // if there is token separator                     
-			length = cursor - start;                                   // measure token length
+		length = cursor - start;                                       // measure token length
+		
+        // Diffirentiaite real numbers from member access operator '.'
+		isNumber = identifyNumber(start, length - 1);                  // Try to get integer part of real number
+		isReal = (value=='.' && isNumber==TokenType::CONST_INTEGER);   // Is current token is real number
+
+		if ((blank || delimeter) && !insideString && !isReal) {        // if there is token separator                   
 			if (length > 0) pushToken(start, length);                  // if length > 0 push token to vector
 			if (value == '\n') {                                       // if '\n' found 
 				rowCounter++;                                          // increment row counter
@@ -63,7 +69,7 @@ void VMParser::parseToTokens(const char* sourceCode) {
 		}
 		else if (value == '"') insideString = !insideString;           // if '"' char - flip insideString flag 
 		else if (insideString && value == '\n') {                      // if '\n' found inside string
-			// TODO parsing error found
+			// TODO warn about parsing error
 		}
 		cursor++;                                                      // increment cursor pointer
 		value = *cursor;                                               // read next char
@@ -95,9 +101,8 @@ TokenType VMParser::pushToken(char* text, size_t length) {
 	if (type != TokenType::UNKNOWN) {
 		WORD tokenColumn = (WORD) (text - rowPointer);
 		tokens->push_back({ type, text, (WORD) length, rowCounter, tokenColumn + 1});
-	}
-	else {
-		// TODO warn about unknown token
+	} else {
+		// TODO warn about unknown token we didnt pushed to vector
 	}
 	return type;
 }
@@ -136,10 +141,10 @@ TokenType VMParser::getTokenType(char* text, size_t length) {
 		case '>': return TokenType::GREATER;
 		case '<': return TokenType::LESS;
 		case '!': return TokenType::L_NOT;
-		//case '.': return TokenType::MEMBER_ACCESS;
+		case '.': return TokenType::MEMBER_ACCESS;
 	}
-	if (value == '\'' && length == 3) return TokenType::CONST_CHAR;
-	if (value == '"' && length >= 3 && text[length - 1] == '"') return TokenType::CONST_STRING;
+	if (value == '\'' && length >= 3 && text[length - 1] == '\'') return TokenType::CONST_CHAR;
+	if (value == '"' && length >= 2 && text[length - 1] == '"') return TokenType::CONST_STRING;
 	if (isdigit(value)) return identifyNumber(text, length);
 	if (isalpha(value)) return identifyKeyword(text, length);
 
@@ -157,7 +162,7 @@ TokenType VMParser::identifyNumber(char* text, size_t length) {
 			if (value == '.') pointFound = true; else return TokenType::UNKNOWN;
 		}
 	}
-	return pointFound ? TokenType::CONST_FLOAT : TokenType::CONST_INT;
+	return pointFound ? TokenType::CONST_REAL : TokenType::CONST_INTEGER;
 }
 
 
@@ -202,10 +207,12 @@ size_t VMParser::getTokenCount() {
 }
 
 void VMParser::printToken(Token& tkn) {
-	cout << "Token: ";
+	cout << "Line=" << tkn.row << " Col=" << tkn.col << "\t";
+	cout << "'";
 	cout.write(tkn.text, tkn.length);
-	cout << "\tLength: " << (uint32_t)tkn.length;
-	cout << "\tType: " << (int)tkn.type;
+	cout << "'";
+	cout << "\t" << "length: " << tkn.length;
+	cout << "\ttype=: " << TOKEN_TYPE_MNEMONIC[(int)tkn.type] << endl;
 }
 
 
@@ -213,12 +220,6 @@ void VMParser::printAllTokens() {
 	Token tkn;
 	for (int i = 0; i < getTokenCount(); i++) {
 		tkn = getToken(i);
-		cout << "Line=" << tkn.row << " Col=" << tkn.col << "\t";
-		cout << "'";
-		cout.write(tkn.text, tkn.length);
-		cout << "'";
-		cout << "\t" << "length: " << tkn.length;
-		cout << "\ttype=: " << TOKEN_TYPE_MNEMONIC[(int)tkn.type] << endl;
-
+		printToken(tkn);
 	}
 }

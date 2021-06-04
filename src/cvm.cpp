@@ -2,6 +2,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <chrono>
 #include "VMRuntime.h"
 #include "VMImage.h"
@@ -66,14 +67,15 @@ void parserTest() {
 		"\t  while (a > b) { };\n"
 		"\t  printf (\"Hello!\");\n"
 		"\t  int ab = 365.0 * 10 - 10 / 2 + 3;\n"
-		"\t  if (a >= b) return 0; else {\n"
-		"\t      byte c = a && b || c ^ d || e < a;\n"
+		"\t  if (a >= b) return a && b; else e < a; {\n"
+		"\t      abc.v1 = obj.va2; 12.13.4\n"
 		"\t  }\n"
 		"}\n";
 	parser->parseToTokens(sourceCode);
 	parser->printAllTokens();
 	delete parser;
 }
+
 
 
 void compilerTest() {

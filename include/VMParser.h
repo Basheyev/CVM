@@ -1,6 +1,6 @@
 /*============================================================================
 *
-*  Virtual Machine Parser class header
+*  Source Code Parser class header
 *
 *  (C) Bolat Basheyev 2021
 *
@@ -13,11 +13,11 @@ using namespace std;
 namespace vm {
 
 	constexpr char* BLANKS = "\x20\n\t";
-	constexpr char* DELIMETERS = ",;{}[]()=><+-*/&|~^!";
+	constexpr char* DELIMETERS = ",;{}[]()=><+-*/&|~^!.";
 
 	enum class TokenType {
 		NONE = 0, UNKNOWN, IDENTIFIER,
-		CONST_CHAR, CONST_INT, CONST_FLOAT, CONST_STRING,
+		CONST_CHAR, CONST_INTEGER, CONST_REAL, CONST_STRING,
 		COMMA, MEMBER_ACCESS, EOS, 
 		OP_BRACES, CL_BRACES, OP_BRACKETS, CL_BRACKETS, OP_PARENTHESES, CL_PARENTHESES,
 		BYTE, SHORT, INT, LONG, CHAR, FLOAT, DOUBLE, STRING, IF, ELSE, WHILE, RETURN,
@@ -28,7 +28,7 @@ namespace vm {
 
 	constexpr char* const TOKEN_TYPE_MNEMONIC[] = {
 		"NONE", "UNKNOWN", "IDENTIFIER",
-		"CONST_CHAR", "CONST_INT", "CONST_FLOAT", "CONST_STRING",
+		"CONST_CHAR", "CONST_INTEGER", "CONST_REAL", "CONST_STRING",
 		"COMMA", "MEMBER_ACCESS", "EOS", 
 		"OP_BRACES", "CL_BRACES", "OP_BRACKETS", "CL_BRACKETS", "OP_PARENTHESES", "CL_PARENTHESES",
 		"BYTE", "SHORT", "INT", "LONG", "CHAR", "FLOAT", "DOUBLE", "STRING", "IF", "ELSE", "WHILE", "RETURN",
