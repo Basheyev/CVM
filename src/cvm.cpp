@@ -62,14 +62,12 @@ void parserTest() {
 	VMParser* parser = new VMParser();
 	char* sourceCode = "int main()\n"
 		"{\n"
-		"\t  int a = 10;\n"
-		"\t  float b = 15.0;\n"
-		"\t  while (a > b) { };\n"
-		"\t  printf (\"Hello!\");\n"
-		"\t  int ab = 365.0 * 10 - 10 / 2 + 3;\n"
-		"\t  if (a >= b) return a && b; else e < a; {\n"
-		"\t      abc.v1 = obj.va2; 12.13.4\n"
-		"\t  }\n"
+		"\t  printf (\"Wow!\");\n"
+		"\t  float a = 365.0 * 10 - 10.0 / 2 + 3;\n"
+		"\t  while (1 != 2) {\n"
+		"\t      abc.v1 = 'x';\n"
+		"\t  };\n"
+		"\t  if (a >= b) return a && b; else a || b;\n" 
 		"}\n";
 	parser->parseToTokens(sourceCode);
 	parser->printAllTokens();
@@ -83,7 +81,7 @@ void compilerTest() {
 
 
 	VMCompiler* compiler = new VMCompiler();
-	compiler->compile("3+5*6+2*3+5/5", image);
+	compiler->compile("3+5*6+2*3+15/5", image);
 	delete compiler;
 
 	VMRuntime* runtime = new VMRuntime();
@@ -101,9 +99,9 @@ int main()
 
 	//opcodesTest();
 	
-	parserTest();
+	//parserTest();
 	
-	//compilerTest();
+	compilerTest();
 
 	return 0;
 }

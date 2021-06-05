@@ -96,18 +96,6 @@ bool VMParser::isDelimeter(char value) {
 }
 
 
-TokenType VMParser::pushToken(char* text, size_t length) {
-	TokenType type = getTokenType(text, length);
-	if (type != TokenType::UNKNOWN) {
-		WORD tokenColumn = (WORD) (text - rowPointer);
-		tokens->push_back({ type, text, (WORD) length, rowCounter, tokenColumn + 1});
-	} else {
-		// TODO warn about unknown token we didnt pushed to vector
-	}
-	return type;
-}
-
-
 TokenType VMParser::getTokenType(char* text, size_t length) {
 	char value = *text;
 	if (length == 2) {
@@ -117,8 +105,8 @@ TokenType VMParser::getTokenType(char* text, size_t length) {
 		if (strncmp(text, "<=", 2) == 0) return TokenType::LS_EQUAL;
 		if (strncmp(text, "<<", 2) == 0) return TokenType::SHL;
 		if (strncmp(text, ">>", 2) == 0) return TokenType::SHR;
-		if (strncmp(text, "&&", 2) == 0) return TokenType::L_AND;
-		if (strncmp(text, "||", 2) == 0) return TokenType::L_OR;
+		if (strncmp(text, "&&", 2) == 0) return TokenType::LOGIC_AND;
+		if (strncmp(text, "||", 2) == 0) return TokenType::LOGIC_OR;
 	}
 	else if (length == 1) switch (value) {
 		case ';': return TokenType::EOS;
@@ -132,15 +120,15 @@ TokenType VMParser::getTokenType(char* text, size_t length) {
 		case '=': return TokenType::ASSIGN;
 		case '+': return TokenType::PLUS;
 		case '-': return TokenType::MINUS;
-		case '*': return TokenType::MUL;
-		case '/': return TokenType::DIV;
+		case '*': return TokenType::MULTIPLY;
+		case '/': return TokenType::DIVIDE;
 		case '&': return TokenType::AND;
 		case '|': return TokenType::OR;
 		case '^': return TokenType::XOR;
 		case '~': return TokenType::NOT;
 		case '>': return TokenType::GREATER;
 		case '<': return TokenType::LESS;
-		case '!': return TokenType::L_NOT;
+		case '!': return TokenType::LOGIC_NOT;
 		case '.': return TokenType::MEMBER_ACCESS;
 	}
 	if (value == '\'' && length >= 3 && text[length - 1] == '\'') return TokenType::CONST_CHAR;
@@ -182,12 +170,25 @@ TokenType VMParser::identifyKeyword(char* text, size_t length) {
 	if (length == 6 && strncmp(text, "return", 6) == 0) return TokenType::RETURN;
 	if (length == 1) return TokenType::IDENTIFIER;
 
-	// if it is not keyword, check if it is correct identifier
+	// if it is not keyword, check if is it correct identifier
 	for (size_t i = 1; i < length; i++) {
 		if (!isalnum(text[i])) return TokenType::UNKNOWN;
 	}
 
 	return TokenType::IDENTIFIER;
+}
+
+
+TokenType VMParser::pushToken(char* text, size_t length) {
+	TokenType type = getTokenType(text, length);
+	if (type != TokenType::UNKNOWN) {
+		WORD tokenColumn = (WORD)(text - rowPointer);
+		tokens->push_back({ type, text, (WORD)length, rowCounter, tokenColumn + 1 });
+	}
+	else {
+		// TODO warn about unknown token we didnt pushed to vector
+	}
+	return type;
 }
 
 
@@ -208,11 +209,9 @@ size_t VMParser::getTokenCount() {
 
 void VMParser::printToken(Token& tkn) {
 	cout << "Line=" << tkn.row << " Col=" << tkn.col << "\t";
-	cout << "'";
 	cout.write(tkn.text, tkn.length);
-	cout << "'";
 	cout << "\t" << "length: " << tkn.length;
-	cout << "\ttype=: " << TOKEN_TYPE_MNEMONIC[(int)tkn.type] << endl;
+	cout << "\ttype: " << TOKEN_TYPE_MNEMONIC[(int)tkn.type] << endl;
 }
 
 

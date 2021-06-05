@@ -24,13 +24,13 @@ VMCompiler::~VMCompiler() {
 
 void VMCompiler::compile(const char* sourceCode, VMImage* destImage) {
 	parser->parseToTokens(sourceCode);
-	parser->printAllTokens();
+	//parser->printAllTokens();
 	parseExpression(0, destImage);
 }
 
 
 //------------------------------------------------------------------------------------------------
-// Expression compiler // 3+5*6+2*3+5 = 44
+// Expression compiler
 //------------------------------------------------------------------------------------------------
 void VMCompiler::parseExpression(size_t startIndex, VMImage* destImage) {
 	Token tkn;
@@ -41,11 +41,11 @@ void VMCompiler::parseExpression(size_t startIndex, VMImage* destImage) {
 		currentToken++;
 		parseTerm(destImage);
 		if (tkn.type == TokenType::PLUS) {
-			cout << "iadd" << endl;
+			cout << "add" << endl;
 			destImage->emit(OP_ADD);
 		}
 		else {
-			cout << "isub" << endl;
+			cout << "sub" << endl;
 			destImage->emit(OP_SUB);
 		}
 		tkn = parser->getToken(currentToken);
@@ -58,15 +58,15 @@ void VMCompiler::parseTerm(VMImage* destImage) {
 	parseFactor(destImage);
 	currentToken++;
 	tkn = parser->getToken(currentToken);
-	while (tkn.type == TokenType::MUL || tkn.type == TokenType::DIV) {
+	while (tkn.type == TokenType::MULTIPLY || tkn.type == TokenType::DIVIDE) {
 		currentToken++;
 		parseFactor(destImage);
-		if (tkn.type == TokenType::MUL) {
-			cout << "imul" << endl;
+		if (tkn.type == TokenType::MULTIPLY) {
+			cout << "mul" << endl;
 			destImage->emit(OP_MUL);
 		}
 		else {
-			cout << "idiv" << endl;
+			cout << "div" << endl;
 			destImage->emit(OP_DIV);
 		}
 		currentToken++;
@@ -84,7 +84,7 @@ void VMCompiler::parseFactor(VMImage* destImage) {
 
 	destImage->emit(OP_CONST, atoi(buffer));
 
-	cout << "iconst ";
+	cout << "const ";
 	cout.write(tkn.text, tkn.length);
 	cout << endl;
 }
