@@ -82,7 +82,7 @@ void compilerTest() {
 
 
 	VMCompiler* compiler = new VMCompiler();
-	compiler->compile("3+5*6+2*3+15/5", image);
+	compiler->compile("-3+5*(6+2)*3+15/5", image);
 	delete compiler;
 
 	VMRuntime* runtime = new VMRuntime();
