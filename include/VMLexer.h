@@ -1,6 +1,6 @@
 /*============================================================================
 *
-*  Source Code Parser class header
+*  Virtual Machine Parser class header
 *
 *  (C) Bolat Basheyev 2021
 *
@@ -13,28 +13,28 @@ using namespace std;
 namespace vm {
 
 	constexpr char* BLANKS = "\x20\n\t";
-	constexpr char* DELIMETERS = ",;{}[]()=><+-*/&|~^!.";
+	constexpr char* DELIMETERS = ",;{}[]()=><+-*/&|~^!";
 
 	enum class TokenType {
 		NONE = 0, UNKNOWN, IDENTIFIER,
-		CONST_CHAR, CONST_INTEGER, CONST_REAL, CONST_STRING,
+		CONST_CHAR, CONST_INT, CONST_FLOAT, CONST_STRING,
 		COMMA, MEMBER_ACCESS, EOS, 
 		OP_BRACES, CL_BRACES, OP_BRACKETS, CL_BRACKETS, OP_PARENTHESES, CL_PARENTHESES,
 		BYTE, SHORT, INT, LONG, CHAR, FLOAT, DOUBLE, STRING, IF, ELSE, WHILE, RETURN,
 		ASSIGN, EQUAL, NOT_EQUAL, GREATER, GR_EQUAL, LESS, LS_EQUAL,
-		PLUS, MINUS, MULTIPLY, DIVIDE, AND, OR, XOR, NOT, SHL, SHR,
-		LOGIC_AND, LOGIC_OR, LOGIC_NOT
+		PLUS, MINUS, MUL, DIV, AND, OR, XOR, NOT, SHL, SHR,
+		L_AND, L_OR, L_NOT
 	};
 
 	constexpr char* const TOKEN_TYPE_MNEMONIC[] = {
 		"NONE", "UNKNOWN", "IDENTIFIER",
-		"CONST_CHAR", "CONST_INTEGER", "CONST_REAL", "CONST_STRING",
-		"COMMA", "MEMBER_ACCESS", "EOS", 
+		"CONST_CHAR", "CONST_INT", "CONST_FLOAT", "CONST_STRING",
+		"COMMA", "MEMBER_ACCESS", "EOS",
 		"OP_BRACES", "CL_BRACES", "OP_BRACKETS", "CL_BRACKETS", "OP_PARENTHESES", "CL_PARENTHESES",
 		"BYTE", "SHORT", "INT", "LONG", "CHAR", "FLOAT", "DOUBLE", "STRING", "IF", "ELSE", "WHILE", "RETURN",
 		"ASSIGN", "EQUAL", "NOT_EQUAL", "GREATER", "GR_EQUAL", "LESS", "LS_EQUAL",
-		"PLUS", "MINUS", "MULTIPLY", "DIVIDE", "AND", "OR", "XOR", "NOT", "SHL", "SHR",
-		"LOGIC_AND", "LOGIC_OR", "LOGIC_NOT"
+		"PLUS", "MINUS", "MUL", "DIV", "AND", "OR", "XOR", "NOT", "SHL", "SHR",
+		"L_AND", "L_OR", "L_NOT"
 	};
 
 	typedef struct {
@@ -47,11 +47,11 @@ namespace vm {
 
 
 
-	class VMParser {
+	class VMLexer {
 	public:
 
-		VMParser();
-		~VMParser();
+		VMLexer();
+		~VMLexer();
 
 		void parseToTokens(const char* sourceCode);
 

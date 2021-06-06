@@ -59,7 +59,7 @@ void opcodesTest() {
 
 
 void parserTest() {
-	VMParser* parser = new VMParser();
+	VMLexer* parser = new VMLexer();
 	char* sourceCode = "int main()\n"
 		"{\n"
 		"\t  printf (\"Wow!\");\n"

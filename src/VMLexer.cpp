@@ -5,7 +5,7 @@
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
-#include "VMParser.h"
+#include "VMLexer.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -14,19 +14,19 @@ using namespace vm;
 
 
 
-VMParser::VMParser() {
+VMLexer::VMLexer() {
 	tokens = new vector<Token>();
 	rowCounter = 0;
 	rowPointer = NULL;
 }
 
 
-VMParser::~VMParser() {
+VMLexer::~VMLexer() {
 	delete tokens;
 }
 
 
-void VMParser::parseToTokens(const char* sourceCode) {
+void VMLexer::parseToTokens(const char* sourceCode) {
 
 	TokenType isNumber = TokenType::UNKNOWN;
 	bool insideString = false;                                         // inside string flag
@@ -81,12 +81,12 @@ void VMParser::parseToTokens(const char* sourceCode) {
 }
 
 
-bool VMParser::isBlank(char value) {
+bool VMLexer::isBlank(char value) {
 	return value == '\x20' || value == '\t' || value == '\n';
 }
 
 
-bool VMParser::isDelimeter(char value) {
+bool VMLexer::isDelimeter(char value) {
 	char* cursor = DELIMETERS;
 	while (*cursor != NULL) {
 		if (*cursor == value) return true;
@@ -96,7 +96,7 @@ bool VMParser::isDelimeter(char value) {
 }
 
 
-TokenType VMParser::getTokenType(char* text, size_t length) {
+TokenType VMLexer::getTokenType(char* text, size_t length) {
 	char value = *text;
 	if (length == 2) {
 		if (strncmp(text, "==", 2) == 0) return TokenType::EQUAL;
@@ -140,7 +140,7 @@ TokenType VMParser::getTokenType(char* text, size_t length) {
 }
 
 
-TokenType VMParser::identifyNumber(char* text, size_t length) {
+TokenType VMLexer::identifyNumber(char* text, size_t length) {
 	bool pointFound = false;
 	char value;
 	for (size_t i = 1; i < length; i++) {
@@ -155,7 +155,7 @@ TokenType VMParser::identifyNumber(char* text, size_t length) {
 
 
 
-TokenType VMParser::identifyKeyword(char* text, size_t length) {
+TokenType VMLexer::identifyKeyword(char* text, size_t length) {
 	if (length == 4 && strncmp(text, "byte", 4) == 0) return TokenType::BYTE;
 	if (length == 5 && strncmp(text, "short", 5) == 0) return TokenType::SHORT;
 	if (length == 3 && strncmp(text, "int", 3) == 0) return TokenType::INT;
@@ -196,18 +196,18 @@ TokenType VMParser::pushToken(char* text, size_t length) {
 // Parsed data getter methods
 //-----------------------------------------------------------------------------------------------
 
-Token VMParser::getToken(size_t index) {
+Token VMLexer::getToken(size_t index) {
 	if (index >= tokens->size()) {
 		return { TokenType::NONE, "NONE", 0, 0, 0 };
 	}
 	return tokens->at(index);
 }
 
-size_t VMParser::getTokenCount() {
+size_t VMLexer::getTokenCount() {
 	return tokens->size();
 }
 
-void VMParser::printToken(Token& tkn) {
+void VMLexer::printToken(Token& tkn) {
 	cout << "Line=" << tkn.row << " Col=" << tkn.col << "\t";
 	cout.write(tkn.text, tkn.length);
 	cout << "\t" << "length: " << tkn.length;
@@ -215,7 +215,7 @@ void VMParser::printToken(Token& tkn) {
 }
 
 
-void VMParser::printAllTokens() {
+void VMLexer::printAllTokens() {
 	Token tkn;
 	for (int i = 0; i < getTokenCount(); i++) {
 		tkn = getToken(i);

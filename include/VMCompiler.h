@@ -7,7 +7,7 @@
 ============================================================================*/
 #include "VMRuntime.h"
 #include "VMImage.h"
-#include "VMParser.h"
+#include "VMLexer.h"
 #include <vector>
 
 using namespace std;
@@ -21,7 +21,7 @@ namespace vm {
 		void compile(const char* sourceCode, VMImage* destImage);
 
 	private:
-		VMParser* parser;
+		VMLexer* parser;
 		size_t currentToken;
 
 		void parseExpression(size_t startIndex, VMImage* destImage);

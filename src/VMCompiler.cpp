@@ -12,7 +12,7 @@ using namespace vm;
 
 
 VMCompiler::VMCompiler() {
-	parser = new VMParser();
+	parser = new VMLexer();
 	currentToken = 0;
 }
 
