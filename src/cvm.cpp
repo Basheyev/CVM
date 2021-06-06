@@ -14,14 +14,14 @@ using namespace vm;
 
 void createExecutableImage(VMImage* img, WORD iterations) {
 	
-	WORD dataSeg = 256;							// Data segment starts at 256
+	WORD dataSeg = 32;							// Data segment starts at 256
 	
 	WORD iVar = dataSeg;
 	WORD myStr = dataSeg + 1;
 	img->writeWord(iVar, iterations);
 	img->writeData(myStr, "Hello, world from VM!\n", 23);    
 	
-	WORD fn = 128;
+	WORD fn = 16;
 
 	WORD addr = img->emit(OP_PUSH, iVar);       // stack <- [iVar] (operand 1)
 	img->emit(OP_DEC);                          // stack[top]--  (operand 1 decrement)
@@ -45,6 +45,7 @@ void opcodesTest() {
 	createExecutableImage(img, 10);
 	VMRuntime* vm = new VMRuntime();
 	vm->loadImage(img->getImage(), img->getImageSize());
+	img->dissasemble();
 	cout << "-----------------------------------------------------" << endl;
 	cout << "Virtual Machine test:" << endl;
 	cout << "-----------------------------------------------------" << endl;

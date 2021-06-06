@@ -24,8 +24,8 @@ VMCompiler::~VMCompiler() {
 
 void VMCompiler::compile(const char* sourceCode, VMImage* destImage) {
 	parser->parseToTokens(sourceCode);
-	//parser->printAllTokens();
 	parseExpression(0, destImage);
+	destImage->dissasemble();
 }
 
 
@@ -41,11 +41,9 @@ void VMCompiler::parseExpression(size_t startIndex, VMImage* destImage) {
 		currentToken++;
 		parseTerm(destImage);
 		if (tkn.type == TokenType::PLUS) {
-			cout << "add" << endl;
 			destImage->emit(OP_ADD);
 		}
 		else {
-			cout << "sub" << endl;
 			destImage->emit(OP_SUB);
 		}
 		tkn = parser->getToken(currentToken);
@@ -62,11 +60,9 @@ void VMCompiler::parseTerm(VMImage* destImage) {
 		currentToken++;
 		parseFactor(destImage);
 		if (tkn.type == TokenType::MULTIPLY) {
-			cout << "mul" << endl;
 			destImage->emit(OP_MUL);
 		}
 		else {
-			cout << "div" << endl;
 			destImage->emit(OP_DIV);
 		}
 		currentToken++;
@@ -81,12 +77,7 @@ void VMCompiler::parseFactor(VMImage* destImage) {
 	char buffer[32];
 	strncpy(buffer, tkn.text, tkn.length);
 	buffer[tkn.length] = 0;
-
 	destImage->emit(OP_CONST, atoi(buffer));
-
-	cout << "const ";
-	cout.write(tkn.text, tkn.length);
-	cout << endl;
 }
 
 
