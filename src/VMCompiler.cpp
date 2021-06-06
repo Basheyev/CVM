@@ -74,14 +74,14 @@ void VMCompiler::parseTerm() {
 
 void VMCompiler::parseFactor() {
 	Token tkn = lexer->getToken(currentToken);
-	bool unarMinus = false;
+	bool unaryMinus = false;
 	if (tkn.type == TokenType::MINUS) {
 		currentToken++;
 		tkn = lexer->getToken(currentToken);
-		unarMinus = true;
+		unaryMinus = true;
 	}
 
-	if (unarMinus) destImage->emit(OP_CONST, 0);
+	if (unaryMinus) destImage->emit(OP_CONST, 0);
 
 	if (tkn.type == TokenType::OP_PARENTHESES) {
 		currentToken++;
@@ -90,7 +90,7 @@ void VMCompiler::parseFactor() {
 		destImage->emit(OP_CONST, lexer->tokenToInt(tkn));
 	}
 
-	if (unarMinus) destImage->emit(OP_SUB);
+	if (unaryMinus) destImage->emit(OP_SUB);
 }
 
 
