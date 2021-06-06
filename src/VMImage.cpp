@@ -173,7 +173,7 @@ void VMImage::dissasemble() {
 		case OP_CALL:    cout << "call    [" << memory[ip++] << "]" << endl; break;
 		case OP_RET:     cout << "ret     " << endl; break;
 		case OP_SYSCALL: cout << "syscall 0x" << setbase(16) << memory[ip++] << setbase(10) << endl; break;
-		case OP_HALT: 	 if (previousOp != opcode) cout << "-------------" << endl; break;
+		case OP_HALT: 	 if (previousOp != opcode) cout << "---- halt ----" << endl; break;
 		default:
 			cout << "0x" << setbase(16) << opcode << setbase(10) << endl;
 		}

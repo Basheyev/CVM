@@ -22,12 +22,11 @@ namespace vm {
 
 	private:
 		VMImage* destImage;
-		VMLexer* parser;
+		VMLexer* lexer;
 		size_t currentToken;
 
 		void parseExpression();
 		void parseTerm();
 		void parseFactor();
-		WORD tokenToInt(Token& tkn);
 	};
 };

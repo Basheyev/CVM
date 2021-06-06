@@ -56,6 +56,7 @@ namespace vm {
 		void parseToTokens(const char* sourceCode);
 
 		Token getToken(size_t index);
+		WORD tokenToInt(Token& tkn);
 		void printToken(Token& tkn);
 		void printAllTokens();
 		size_t getTokenCount();

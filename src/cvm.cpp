@@ -59,7 +59,7 @@ void opcodesTest() {
 }
 
 
-void parserTest() {
+void lexerTest() {
 	VMLexer* parser = new VMLexer();
 	char* sourceCode = "int main()\n"
 		"{\n"
@@ -100,7 +100,7 @@ int main()
 
 	//opcodesTest();
 	
-	//parserTest();
+	//lexerTest();
 	
 	compilerTest();
 

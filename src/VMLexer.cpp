@@ -203,9 +203,21 @@ Token VMLexer::getToken(size_t index) {
 	return tokens->at(index);
 }
 
+
+WORD VMLexer::tokenToInt(Token& tkn) {
+	char buffer[32];
+	strncpy(buffer, tkn.text, tkn.length);
+	buffer[tkn.length] = 0;
+	return atoi(buffer);
+}
+
+
 size_t VMLexer::getTokenCount() {
 	return tokens->size();
 }
+
+
+
 
 void VMLexer::printToken(Token& tkn) {
 	cout << "Line=" << tkn.row << " Col=" << tkn.col << "\t";
