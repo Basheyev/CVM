@@ -207,7 +207,7 @@ Token VMLexer::getToken(size_t index) {
 WORD VMLexer::tokenToInt(Token& tkn) {
 	if (tkn.type != TokenType::CONST_INTEGER) return 0;
 	char buffer[32];
-	strncpy(buffer, tkn.text, tkn.length);
+	strncpy_s(buffer, tkn.text, tkn.length);
 	buffer[tkn.length] = 0;
 	return atoi(buffer);
 }
