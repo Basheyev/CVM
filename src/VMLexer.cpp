@@ -1,6 +1,6 @@
 /*============================================================================
 *
-*  Source Code Parser class implementation
+*  Source Code lexer class implementation
 *
 *  (C) Bolat Basheyev 2021
 *
@@ -179,7 +179,7 @@ TokenType VMLexer::identifyKeyword(char* text, size_t length) {
 }
 
 
-TokenType VMParser::pushToken(char* text, size_t length) {
+TokenType VMLexer::pushToken(char* text, size_t length) {
 	TokenType type = getTokenType(text, length);
 	if (type != TokenType::UNKNOWN) {
 		WORD tokenColumn = (WORD)(text - rowPointer);
