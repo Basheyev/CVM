@@ -12,6 +12,9 @@ using namespace std;
 using namespace vm;
 
 
+//-------------------------------------------------------------------
+// Virtual Machine Test
+//-------------------------------------------------------------------
 void createExecutableImage(VMImage* img, WORD iterations) {
 	
 	WORD dataSeg = 32;							// Data segment starts at 256
@@ -40,7 +43,7 @@ void createExecutableImage(VMImage* img, WORD iterations) {
 }
 
 
-void opcodesTest() {
+void vmTest() {
 	VMImage* img = new VMImage();
 	createExecutableImage(img, 10);
 	VMRuntime* vm = new VMRuntime();
@@ -59,8 +62,12 @@ void opcodesTest() {
 }
 
 
+//-------------------------------------------------------------------
+// Lexer Test
+//-------------------------------------------------------------------
+
 void lexerTest() {
-	VMLexer* parser = new VMLexer();
+	VMLexer* lexer = new VMLexer();
 	char* sourceCode = "int main()\n"
 		"{\n"
 		"\t  printf (\"Wow!\");\n"
@@ -70,13 +77,14 @@ void lexerTest() {
 		"\t  };\n"
 		"\t  if (a >= b) return a && b; else a || b;\n" 
 		"}\n";
-	parser->parseToTokens(sourceCode);
-	parser->printAllTokens();
-	delete parser;
+	lexer->parseToTokens(sourceCode);
+	lexer->printAllTokens();
+	delete lexer;
 }
 
-
-
+//-------------------------------------------------------------------
+// Compiler Test
+//-------------------------------------------------------------------
 void compilerTest() {
 	VMImage* image = new VMImage();
 
@@ -98,7 +106,7 @@ void compilerTest() {
 int main()
 {
 
-	//opcodesTest();
+	//vmTest();
 	
 	//lexerTest();
 	
