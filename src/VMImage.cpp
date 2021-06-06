@@ -104,7 +104,7 @@ void VMImage::writeWord(WORD address, WORD value) {
  Returns memory size in 32-bit DWORDs
 */
 size_t VMImage::getImageSize() {
-	return (imageSize + 1) * sizeof(WORD);
+	return ((size_t)imageSize + 1) * sizeof(WORD);
 }
 
 

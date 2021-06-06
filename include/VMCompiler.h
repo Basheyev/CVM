@@ -28,5 +28,6 @@ namespace vm {
 		void parseExpression();
 		void parseTerm();
 		void parseFactor();
+		WORD tokenToInt(Token& tkn);
 	};
 };

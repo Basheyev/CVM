@@ -12,6 +12,7 @@ using namespace vm;
 
 
 VMCompiler::VMCompiler() {
+	destImage = NULL;
 	parser = new VMLexer();
 	currentToken = 0;
 }
@@ -79,19 +80,25 @@ void VMCompiler::parseFactor() {
 		tkn = parser->getToken(currentToken);
 		unarMinus = true;
 	}
+
+	if (unarMinus) destImage->emit(OP_CONST, 0);
+
 	if (tkn.type == TokenType::OP_PARENTHESES) {
 		currentToken++;
-		if (unarMinus) destImage->emit(OP_CONST, 0);
 		parseExpression();
-		if (unarMinus) destImage->emit(OP_SUB);
 	} else if (tkn.type == TokenType::CONST_INTEGER) {
-		if (unarMinus) destImage->emit(OP_CONST, 0);
-		char buffer[32];
-		strncpy(buffer, tkn.text, tkn.length);
-		buffer[tkn.length] = 0;
-		destImage->emit(OP_CONST, atoi(buffer));
-		if (unarMinus) destImage->emit(OP_SUB);
+		destImage->emit(OP_CONST, tokenToInt(tkn));
 	}
+
+	if (unarMinus) destImage->emit(OP_SUB);
+}
+
+
+WORD VMCompiler::tokenToInt(Token& tkn) {
+	char buffer[32];
+	strncpy(buffer, tkn.text, tkn.length);
+	buffer[tkn.length] = 0;
+	return atoi(buffer);
 }
 
 
