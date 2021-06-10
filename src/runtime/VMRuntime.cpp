@@ -10,8 +10,8 @@
 ============================================================================*/
 #include <iostream>
 #include <cstring>
-#include "VMRuntime.h"
-#include "VMImage.h"
+#include "runtime/VMRuntime.h"
+#include "image/VMImage.h"
 
 
 using namespace std;

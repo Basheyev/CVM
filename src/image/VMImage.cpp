@@ -9,7 +9,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
-#include "VMImage.h"
+#include "image/VMImage.h"
 
 using namespace std;
 using namespace vm;

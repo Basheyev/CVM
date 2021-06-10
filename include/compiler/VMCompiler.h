@@ -5,9 +5,9 @@
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
-#include "VMRuntime.h"
-#include "VMImage.h"
-#include "VMLexer.h"
+#include "runtime/VMRuntime.h"
+#include "image/VMImage.h"
+#include "compiler/VMLexer.h"
 #include <vector>
 
 using namespace std;

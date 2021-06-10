@@ -1,11 +1,11 @@
 /*============================================================================
 *
-*  Source Code lexer class implementation
+*  Virtual Machine Compiler lexer class implementation
 *
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
-#include "VMLexer.h"
+#include "compiler/VMLexer.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -163,7 +163,7 @@ TokenType VMLexer::identifyKeyword(char* text, size_t length) {
 	if (length == 4 && strncmp(text, "char", 4) == 0) return TokenType::CHAR;
 	if (length == 5 && strncmp(text, "float", 5) == 0) return TokenType::FLOAT;
 	if (length == 6 && strncmp(text, "double", 6) == 0) return TokenType::DOUBLE;
-	if (length == 6 && strncmp(text, "string", 6) == 0) return TokenType::STRING;
+	if (length == 6 && strncmp(text, "string", 6) == 0) return TokenType::POINTER;
 	if (length == 2 && strncmp(text, "if", 2) == 0) return TokenType::IF;
 	if (length == 4 && strncmp(text, "else", 4) == 0) return TokenType::ELSE;
 	if (length == 5 && strncmp(text, "while", 5) == 0) return TokenType::WHILE;

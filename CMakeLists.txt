@@ -5,9 +5,22 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("cvm")
 
-include_directories("include")
+include_directories("include" "include/runtime" "include/image" "include/compiler")
 
 # Добавьте источник в исполняемый файл этого проекта.
-add_executable (cvm "src/cvm.cpp" "src/VMRuntime.cpp"   "include/VMRuntime.h"  "include/VMCompiler.h" "src/VMCompiler.cpp" "include/VMImage.h" "src/VMImage.cpp" "src/VMLexer.cpp" "include/VMLexer.h")
+add_executable (cvm 
+	"include/runtime/VMRuntime.h"  
+	"include/image/VMImage.h" 
+	"include/compiler/VMCompiler.h" 
+	"include/compiler/VMLexer.h" 
+	"include/compiler/VMNode.h"
+
+	"src/cvm.cpp" 
+	"src/runtime/VMRuntime.cpp"   
+	"src/image/VMImage.cpp" 
+	"src/compiler/VMCompiler.cpp" 
+	"src/compiler/VMLexer.cpp"
+	"src/compiler/VMNode.cpp"
+)
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.

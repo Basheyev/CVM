@@ -5,8 +5,11 @@
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
-#include "VMCompiler.h"
+#include "compiler/VMCompiler.h"
 #include <iostream>
+
+
+// TODO переменные и их вывод в консоль
 
 using namespace vm;
 
