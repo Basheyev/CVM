@@ -27,7 +27,7 @@ namespace vm {
 		
 		WORD readWord(WORD address);
 		void writeWord(WORD address, WORD value);
-		WORD writeData(WORD address, void* data, size_t length);
+		WORD writeData(WORD address, void* data, WORD length);
 				
 		void* getImage();
 		size_t getImageSize();

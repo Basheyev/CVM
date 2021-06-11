@@ -8,6 +8,7 @@
 #include "image/VMImage.h"
 #include "compiler/VMCompiler.h"
 #include "compiler/VMNode.h"
+#include "compiler/VMSyntaxTree.h"
 
 using namespace std;
 using namespace vm;
@@ -107,32 +108,11 @@ void compilerTest() {
 //-------------------------------------------------------------------
 // Node Test
 //-------------------------------------------------------------------
-void nodeTest() {
-	VMNode* root = new VMNode(NULL,NULL);
-
-	Token ta = { TokenType::CONST_CHAR, "'a'", 3, 1, 1 };
-	Token tb = { TokenType::CONST_CHAR, "'b'", 3, 1, 1 };
-	Token tc = { TokenType::CONST_CHAR, "'c'", 3, 1, 1 };
-	Token td = { TokenType::CONST_CHAR, "'d'", 3, 1, 1 };
-	Token te = { TokenType::CONST_CHAR, "'e'", 3, 1, 1 };
-	Token tf = { TokenType::CONST_CHAR, "'f'", 3, 1, 1 };
-
-	VMNode* a = root->addChild(ta);
-	VMNode* b = a->addChild(tb);
-	VMNode* c = a->addChild(tc);
-	VMNode* d = b->addChild(td);
-	VMNode* e = c->addChild(te);
-	VMNode* f = c->addChild(tf);
-
+void syntaxTreeTest() {
+	VMSyntaxTree *tree = new VMSyntaxTree();
+	VMNode* root = tree->parse("-3+5*(6+2)*(15-3)/5");
 	root->print();
-
-	a->removeChild(b);
-	c->removeChild(f);
-
-	cout << endl;
-	root->print();
-
-	delete root;
+	//delete tree;
 }
 
 
@@ -145,7 +125,7 @@ int main()
 	
 	//compilerTest();
 
-	nodeTest();
+	syntaxTreeTest();
 
 	return 0;
 }

@@ -14,6 +14,7 @@ add_executable (cvm
 	"include/compiler/VMCompiler.h" 
 	"include/compiler/VMLexer.h" 
 	"include/compiler/VMNode.h"
+	"include/compiler/VMSyntaxTree.h" 
 
 	"src/cvm.cpp" 
 	"src/runtime/VMRuntime.cpp"   
@@ -21,6 +22,6 @@ add_executable (cvm
 	"src/compiler/VMCompiler.cpp" 
 	"src/compiler/VMLexer.cpp"
 	"src/compiler/VMNode.cpp"
-)
+	"src/compiler/VMSyntaxTree.cpp")
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.

@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "VMLexer.h"
+#include "compiler/VMLexer.h"
 #include <vector>
 
 namespace vm {
@@ -16,23 +16,30 @@ namespace vm {
 	class VMNode {
 	public:
 
-		VMNode(VMNode* parent, Token* token);
+		VMNode();
+		VMNode(Token token);
+		VMNode(VMNode* parent, Token token);
 		~VMNode();
 
-		VMNode* addChild(Token& token);
+		VMNode* addChild(VMNode* node);
+		VMNode* addChild(Token token);
 		bool removeChild(VMNode* node);
+		void removeAll();
 
-		Token* getToken();
+		Token getToken();
 		VMNode* getParent();
 		VMNode* getChild(size_t index);
 		size_t getChildCount();
+		size_t getDepth();
 
-		void print(int tab = 0);
+		void print();
 
 	private:
 		VMNode* parent;
 		vector<VMNode*> childs;
-		Token* token;
+		Token token;
+
+		void print(int tab);
 	};
 
 };

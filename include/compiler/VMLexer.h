@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "VMRuntime.h"
+#include "runtime/VMRuntime.h"
 #include <vector>
 
 using namespace std;
@@ -48,7 +48,7 @@ namespace vm {
 		WORD col;                
 	} Token;
 
-
+	constexpr Token EMPTY_TOKEN = { TokenType::NONE, "", 0, 0, 0 };
 
 	class VMLexer {
 	public:
