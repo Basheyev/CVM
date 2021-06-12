@@ -7,10 +7,13 @@
 ============================================================================*/
 
 #include "compiler/VMSyntaxTree.h"
-
+#include <iostream>
 
 using namespace vm;
 using namespace std;
+
+constexpr Token TKN_ZERO = { TokenType::CONST_INTEGER, "0", 1, 0, 0 };
+constexpr Token TKN_MINUS = { TokenType::MINUS, "-", 1, 0, 0 };
 
 VMSyntaxTree::VMSyntaxTree() {
 	lexer = new VMLexer();
@@ -31,161 +34,162 @@ VMNode* VMSyntaxTree::parse(const char* source) {
 		root = NULL;
 	}
 
+	currentToken = 0;
 	lexer->parseToTokens(source);
 
-
-	currentToken = 0;
-	root = parseBlock();
-
-
+	try {
+		root = parseFunction();
+	}
+	catch (ParserException& e) {
+		// nodes memory leakage
+		cerr << "ParserException: " << e.msg << endl;
+		cerr << "Token: ";
+		cerr.write(e.token.text, e.token.length);
+		cout << endl;
+		cerr << "Line: " << e.token.row << " Col: " << e.token.col << endl;
+		return NULL;
+	}
 
 	return root;
 }
 
 
+//-----------------------------------------------------------------------------
+// Parsing recursive methods
+//-----------------------------------------------------------------------------
 
 VMNode* VMSyntaxTree::parseFunction() {
-	return NULL;
+	return parseBlock();
 }
 
 
 VMNode* VMSyntaxTree::parseDeclaration() {
-
 	// declaration :== TYPE identifier {= expression}
 	return NULL;
 }
 
 
+//-----------------------------------------------------------------------------
+// Parse block of statements
+//-----------------------------------------------------------------------------
 VMNode* VMSyntaxTree::parseBlock() {
-	VMNode* stmt, *block = NULL;
-	Token token, prevToken;
-	token = lexer->getToken(currentToken);
-	// single statement
-	if (token.type != TokenType::OP_BRACES)	return parseStatement();
-	// block
-	block = new VMNode({ TokenType::NONE, "BLOCK", 5, 0,0 });
-	do {
-		currentToken++;
-		stmt = parseStatement();
-		block->addChild(stmt);
-		token = lexer->getToken(currentToken);
-	} while (token.type != TokenType::CL_BRACES);
-	currentToken++;
+	if (!isTokenType(TokenType::OP_BRACES)) return parseStatement();
+	VMNode* block = new VMNode({ TokenType::NONE, "BLOCK", 5, 0,0 });
+	while (next()) {
+		if (isTokenType(TokenType::CL_BRACES)) break;
+		if (isTokenType(TokenType::EOS)) continue;
+		block->addChild(parseStatement());
+	}
 	return block;
 }
 
-
+//-----------------------------------------------------------------------------
+// Parse statement
+//-----------------------------------------------------------------------------
 VMNode* VMSyntaxTree::parseStatement() {
-	Token token = lexer->getToken(currentToken);
-	Token nextToken = lexer->getToken(currentToken + 1);
-
+	Token token = getToken();
 	switch (token.type) {
-	case TokenType::IDENTIFIER:
-		if (nextToken.type == TokenType::ASSIGN) return parseAssignment();
-		break;
-	case TokenType::IF:
-		if (nextToken.type == TokenType::OP_PARENTHESES) {
-			VMNode* ifblock = new VMNode(token);
-			currentToken+=2; // skip 'if ('
-			VMNode* condition = parseLogical();
-			currentToken++;  // skip ')'
-			VMNode* mainBlock = parseBlock();
-			ifblock->addChild(condition);
-			ifblock->addChild(mainBlock);
-			token = lexer->getToken(currentToken);
-			if (token.type == TokenType::ELSE) {
-				currentToken++; // skip 'else'
-				VMNode* elseBlock = parseBlock();
-				ifblock->addChild(elseBlock);
-			}
-			return ifblock;
-		}
-		break;
-	case TokenType::WHILE:
-		if (nextToken.type == TokenType::OP_PARENTHESES) {
-			VMNode* whileBlock = new VMNode(token);
-			currentToken+=2; // skip 'while ('
-			VMNode* condition = parseLogical();
-			currentToken++;  // skip ')'
-			VMNode* mainBlock = parseBlock();
-			whileBlock->addChild(condition);
-			whileBlock->addChild(mainBlock);
-			return whileBlock;
-		}
-		break;
+		case TokenType::IDENTIFIER: return parseAssignment();
+		case TokenType::IF: return parseIf();
+		case TokenType::WHILE: return parseWhile();
+		default: raiseError("Unexpected token, statement expected");
 	}
-
-
-	// call ()
 	return NULL;
 }
 
-
-VMNode* VMSyntaxTree::parseAssignment() {
-	VMNode* a, * b, * op = NULL;
-	Token identifier = lexer->getToken(currentToken);
-	Token assign = lexer->getToken(currentToken + 1);
-
-	if (identifier.type == TokenType::IDENTIFIER && assign.type == TokenType::ASSIGN) {
-		op = new VMNode(assign);
-		a = new VMNode(identifier);
-		currentToken += 2;
-		b = parseLogical();
-		op->addChild(a);
-		op->addChild(b);
+//-----------------------------------------------------------------------------
+// Parse if-else
+//-----------------------------------------------------------------------------
+VMNode* VMSyntaxTree::parseIf() {
+	VMNode* ifblock = new VMNode(getToken()); next();
+	check(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
+	next();	ifblock->addChild(parseCondition());
+	check(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
+	next();	ifblock->addChild(parseBlock());
+	if (getNextToken().type==TokenType::ELSE) {
+		next(); next(); // FIXME why 2 next???
+		ifblock->addChild(parseBlock());
 	}
+	return ifblock;
+}
 
+
+//-----------------------------------------------------------------------------
+// Parse while 
+//-----------------------------------------------------------------------------
+VMNode* VMSyntaxTree::parseWhile() {
+	VMNode* whileBlock = new VMNode(getToken()); next();
+	check(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
+	next(); whileBlock->addChild(parseCondition());
+	check(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
+	next(); whileBlock->addChild(parseBlock());
+	return whileBlock;
+}
+
+
+//-----------------------------------------------------------------------------
+// Parse assignment
+//-----------------------------------------------------------------------------
+VMNode* VMSyntaxTree::parseAssignment() {
+	Token identifier = getToken(); next();
+	check(TokenType::ASSIGN, "Assignment '=' expected");
+	VMNode* op = new VMNode(getToken()); next();
+	VMNode* a = new VMNode(identifier);
+	VMNode* b = parseCondition();
+	op->addChild(a);
+	op->addChild(b);
 	return op;
 }
 
 
-
-VMNode* VMSyntaxTree::parseLogical() {
+//-----------------------------------------------------------------------------
+// Parse condition
+//-----------------------------------------------------------------------------
+VMNode* VMSyntaxTree::parseCondition() {
 	VMNode* a, * b, * op = NULL, * prevOp = NULL;
 	a = parseExpression();
-	Token token = lexer->getToken(currentToken);
-	while (
-		token.type == TokenType::EQUAL || 
-		token.type == TokenType::NOT_EQUAL ||
-		token.type == TokenType::GREATER ||
-		token.type == TokenType::GR_EQUAL ||
-		token.type == TokenType::LESS ||
-		token.type == TokenType::LS_EQUAL) {
-		currentToken++;
+	Token token = getToken();
+	while (isLogicOp(token.type)) {
+		next();
 		b = parseExpression();
 		op = new VMNode(token);
 		if (prevOp == NULL) op->addChild(a); else op->addChild(prevOp);
 		op->addChild(b);
 		prevOp = op;
-		token = lexer->getToken(currentToken);
+		token = getToken();
 	}
 	return op == NULL ? a : op;
 }
 
 
+//-----------------------------------------------------------------------------
+// Parse expression
+//-----------------------------------------------------------------------------
 VMNode* VMSyntaxTree::parseExpression() {
 	VMNode *a, *b, *op = NULL, *prevOp = NULL;
 	a = parseTerm();
-	Token token = lexer->getToken(currentToken);
-	while (token.type == TokenType::PLUS || token.type == TokenType::MINUS) {
-		currentToken++;                           
+	Token token = getToken();
+	while (isTokenType(TokenType::PLUS) || isTokenType(TokenType::MINUS)) {
+		next(); 
 		b = parseTerm();
 		op = new VMNode(token);
 		if (prevOp == NULL) op->addChild(a); else op->addChild(prevOp);
 		op->addChild(b);
 		prevOp = op;
-		token = lexer->getToken(currentToken);
+		token = getToken();
 	}
 	return op == NULL ? a : op;
 }
 
-
+//-----------------------------------------------------------------------------
+// Parse term
+//-----------------------------------------------------------------------------
 VMNode* VMSyntaxTree::parseTerm() {
 	VMNode* a, * b, * op = NULL, * prevOp = NULL;
 	a = parseFactor();
-	Token token = lexer->getToken(currentToken);
-	while (token.type == TokenType::MULTIPLY || token.type == TokenType::DIVIDE) {
-		currentToken++;
+	Token token = getToken();
+	while (isTokenType(TokenType::MULTIPLY) || isTokenType(TokenType::DIVIDE)) {
+		next();
 		b = parseFactor();
 		op = new VMNode(token);
 		if (prevOp == NULL) op->addChild(a); else op->addChild(prevOp);
@@ -196,38 +200,35 @@ VMNode* VMSyntaxTree::parseTerm() {
 	return op == NULL ? a : op;
 }
 
-
+//-----------------------------------------------------------------------------
+// Parse factor
+//-----------------------------------------------------------------------------
 VMNode* VMSyntaxTree::parseFactor() {
-	VMNode* a = NULL, *b = NULL, *op = NULL;
-	Token token = lexer->getToken(currentToken);
+	VMNode* factor = NULL;	
 	bool unaryMinus = false;
 
-	if (token.type == TokenType::MINUS) {
-		currentToken++;
-		token = lexer->getToken(currentToken);
-		unaryMinus = true;
-	}
+	if (isTokenType(TokenType::MINUS)) { unaryMinus = true; next(); }
 
-	if (token.type == TokenType::OP_PARENTHESES) {
-		currentToken++;
-		b = parseExpression();
-		currentToken++;
-	} else if (token.type == TokenType::CONST_INTEGER || token.type == TokenType::IDENTIFIER) {
-		b = new VMNode(token);
-		currentToken++;
-	} else {
-		// throw exception
-		return new VMNode(token);
-	}
+	if (isTokenType(TokenType::OP_PARENTHESES)) {
+		next();
+		factor = parseExpression();
+		Token token = getToken();
+		if (isTokenType(TokenType::CL_PARENTHESES)) next(); 
+		else raiseError("Closing parentheses expected");
+	} 
+	else if (isTokenType(TokenType::CONST_INTEGER)) { factor = new VMNode(getToken());	next(); }
+	else if (isTokenType(TokenType::IDENTIFIER)) { factor = new VMNode(getToken()); next(); } 
+	else raiseError("Number or identifier expected");
 
 	if (unaryMinus) {
-		a = new VMNode({ TokenType::CONST_INTEGER, "0", 1, token.row, token.col});
-		op = new VMNode({ TokenType::MINUS, "-", 1, token.row, token.col});
-		op->addChild(a);
-		op->addChild(b);
-		return op;
+		Token token = getToken();
+		VMNode* zero = new VMNode(TKN_ZERO);
+		VMNode* expr = new VMNode(TKN_MINUS);
+		expr->addChild(zero);
+		expr->addChild(factor);
+		return expr;
 	}
 
-	return b;
+	return factor;
 }
 

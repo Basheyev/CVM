@@ -138,7 +138,7 @@ void syntaxTreeTest() {
 
 	VMSyntaxTree *tree = new VMSyntaxTree();
 	VMNode* root = tree->parse(sourceCode.c_str());
-	root->print();
+	if (root != NULL) root->print();
 	delete tree;
 }
 
