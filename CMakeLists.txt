@@ -25,3 +25,4 @@ add_executable (cvm
 	"src/compiler/VMSyntaxTree.cpp")
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.
+target_compile_features(cvm PUBLIC cxx_std_17)

@@ -16,13 +16,10 @@ namespace vm {
 	class VMNode {
 	public:
 
-		VMNode();
 		VMNode(Token token);
-		VMNode(VMNode* parent, Token token);
 		~VMNode();
 
 		VMNode* addChild(VMNode* node);
-		VMNode* addChild(Token token);
 		bool removeChild(VMNode* node);
 		void removeAll();
 
@@ -35,9 +32,9 @@ namespace vm {
 		void print();
 
 	private:
-		VMNode* parent;
-		vector<VMNode*> childs;
 		Token token;
+		vector<VMNode*> childs;
+		VMNode* parent;
 
 		void print(int tab);
 	};

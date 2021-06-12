@@ -2,6 +2,7 @@
 //
 
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <chrono>
 #include "runtime/VMRuntime.h"
@@ -108,11 +109,37 @@ void compilerTest() {
 //-------------------------------------------------------------------
 // Node Test
 //-------------------------------------------------------------------
+bool loadFile(std::string& data, const char* filename)
+{
+	ios_base::openmode openmode = ios::ate | ios::in | ios::binary;
+	ifstream file(filename, openmode);
+	if (file.is_open()) {
+		data.clear();
+		streampos size = file.tellg();
+		data.reserve(size);
+		file.seekg(0, ios::beg);
+		data.append(istreambuf_iterator<char>(file.rdbuf()), istreambuf_iterator<char>());
+		file.close();
+		return true;
+	}
+	return false;
+}
+
+
 void syntaxTreeTest() {
+	string sourceCode;
+	
+	cout << filesystem::current_path() << endl;
+
+	if (!loadFile(sourceCode, "c:/Learning/cvm/cvm/test/script00.cvm")) {
+		cout << "File not open." << endl;
+		return;
+	}
+
 	VMSyntaxTree *tree = new VMSyntaxTree();
-	VMNode* root = tree->parse("-3+5*(6+2)*(15-3)/5");
+	VMNode* root = tree->parse(sourceCode.c_str());
 	root->print();
-	//delete tree;
+	delete tree;
 }
 
 

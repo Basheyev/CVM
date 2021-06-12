@@ -28,8 +28,10 @@ namespace vm {
 
 		VMNode* parseFunction();
 		VMNode* parseDeclaration();
+		VMNode* parseBlock();
 		VMNode* parseStatement();
 		VMNode* parseAssignment();
+		VMNode* parseLogical();
 		VMNode* parseExpression();
 		VMNode* parseTerm();
 		VMNode* parseFactor();
