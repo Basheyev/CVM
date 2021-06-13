@@ -150,9 +150,9 @@ int main()
 	
 	//lexerTest();
 	
-	//compilerTest();
+	compilerTest();
 
-	syntaxTreeTest();
+	//syntaxTreeTest();
 
 	return 0;
 }

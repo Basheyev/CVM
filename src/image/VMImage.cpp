@@ -76,9 +76,10 @@ WORD VMImage::emit(WORD opcode, WORD operand) {
 /*
  Writes data to specified address
 */
-WORD VMImage::writeData(WORD address, void* data, WORD length) {
-	memcpy(&memory[address], data, length);
-	if (address + length > imageSize) imageSize = address + length;
+WORD VMImage::writeData(WORD address, void* data, WORD bytesCount) {
+	WORD wordsCount = bytesCount / sizeof(WORD);
+	memcpy(&memory[address], data, bytesCount);
+	if ((address + wordsCount) > imageSize) imageSize = address + wordsCount;
 	return address;
 }
 

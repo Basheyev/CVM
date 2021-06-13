@@ -282,8 +282,7 @@ VMNode* VMSyntaxTree::parseFactor() {
 	if (isTokenType(TokenType::MINUS)) { unaryMinus = true; next(); } else
 	if (isTokenType(TokenType::PLUS)) { unaryMinus = false; next(); }
 	else {
-	
-	
+		// add unary Not operator	
 	}
 	
 	if (isTokenType(TokenType::OP_PARENTHESES)) {
