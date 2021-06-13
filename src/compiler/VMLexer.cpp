@@ -168,9 +168,10 @@ TokenType VMLexer::identifyKeyword(char* text, size_t length) {
 	if (length == 4 && strncmp(text, "else", 4) == 0) return TokenType::ELSE;
 	if (length == 5 && strncmp(text, "while", 5) == 0) return TokenType::WHILE;
 	if (length == 6 && strncmp(text, "return", 6) == 0) return TokenType::RETURN;
+	if (length == 6 && strncmp(text, "module", 6) == 0) return TokenType::MODULE;
 	if (length == 1) return TokenType::IDENTIFIER;
 
-	// if it is not keyword, check if is it correct identifier
+	// if it is not keyword, checkToken if is it correct identifier
 	for (size_t i = 1; i < length; i++) {
 		if (!isalnum(text[i])) return TokenType::UNKNOWN;
 	}

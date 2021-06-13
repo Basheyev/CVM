@@ -12,9 +12,10 @@ using namespace vm;
 using namespace std;
 
 
-VMNode::VMNode(Token token) {
+VMNode::VMNode(Token token, VMNodeType type) {
 	this->parent = NULL;
 	this->token = token;
+	this->type = type;
 }
 
 
@@ -91,6 +92,6 @@ void VMNode::print(int tab) {
 	for (int i = 0; i < tab; i++) if (i < tab - 1) cout << "| "; else cout << "|-";
 	cout << "'";
 	cout.write(token.text, token.length);
-	cout << "'" << endl;
+	cout << "'" << "(" << NODE_TYPE_MNEMONIC[(unsigned int) type] << ")" << endl;
 	for (auto& node : childs) node->print(tab + 1);
 }

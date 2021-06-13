@@ -13,10 +13,20 @@
 
 namespace vm {
 
+	enum class VMNodeType { 
+		UNKNOWN = 0, CONSTANT, DECLARATION, SYMBOL, DATA_TYPE,
+		MODULE, FUNCTION, BLOCK, IF_STATEMENT, WHILE_STATEMENT, BINARY_OPERATION
+	};
+
+	constexpr char* const NODE_TYPE_MNEMONIC[] = {
+		"UNKNOWN", "CONSTANT", "DECLARATION", "SYMBOL", "DATA_TYPE",
+		"MODULE", "FUNCTION", "BLOCK", "IF_STATEMENT", "WHILE_STATEMENT", "BINARY_OPERATION"
+	};
+
 	class VMNode {
 	public:
 
-		VMNode(Token token);
+		VMNode(Token token, VMNodeType type);
 		~VMNode();
 
 		VMNode* addChild(VMNode* node);
@@ -35,6 +45,7 @@ namespace vm {
 		Token token;
 		vector<VMNode*> childs;
 		VMNode* parent;
+		VMNodeType type;
 
 		void print(int tab);
 	};

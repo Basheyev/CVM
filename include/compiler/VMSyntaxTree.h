@@ -32,8 +32,10 @@ namespace vm {
 		VMNode* root;
 		size_t currentToken;
 
-		VMNode* parseFunction();
+		VMNode* parseModule();
 		VMNode* parseDeclaration();
+		VMNode* parseFunction();
+		VMNode* parseParameters();
 		VMNode* parseBlock();
 		VMNode* parseStatement();
 		VMNode* parseIf();
@@ -50,8 +52,9 @@ namespace vm {
 		inline Token getNextToken() { return lexer->getToken(currentToken + 1); }
 		inline bool isTokenType(TokenType type) { return getToken().type == type; }
 		inline bool isLogicOp(TokenType type) {	return type >= TokenType::EQUAL && type <= TokenType::LOGIC_NOT; }
+		inline bool isDataType(TokenType type) { return type >= TokenType::BYTE && type <= TokenType::POINTER; }
 		inline void raiseError(const char* msg) { throw ParserException{ getToken(), msg }; }
-		inline void check(TokenType type, const char* msg) { if (!isTokenType(type)) raiseError(msg); }
+		inline void checkToken(TokenType type, const char* msg) { if (!isTokenType(type)) raiseError(msg); }
 
 	};
 
