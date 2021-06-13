@@ -9,7 +9,8 @@
 #include "image/VMImage.h"
 #include "compiler/VMCompiler.h"
 #include "compiler/VMNode.h"
-#include "compiler/VMSyntaxTree.h"
+#include "compiler/VMParser.h"
+#include "compiler/VMCodeGenerator.h"
 
 using namespace std;
 using namespace vm;
@@ -136,23 +137,47 @@ void syntaxTreeTest() {
 		return;
 	}
 
-	VMSyntaxTree *tree = new VMSyntaxTree();
+	VMParser *tree = new VMParser();
 	VMNode* root = tree->parse(sourceCode.c_str());
 	if (root != NULL) root->print();
 	delete tree;
 }
 
 
+void codeGeneratorTest() {
+	string sourceCode;
+
+	cout << filesystem::current_path() << endl;
+
+	if (!loadFile(sourceCode, "c:/Learning/cvm/cvm/test/script01.cvm")) {
+		cout << "File not open." << endl;
+		return;
+	}
+
+	VMParser* parser = new VMParser();
+	VMNode* root = parser->parse(sourceCode.c_str());
+	if (root != NULL) {
+		VMImage* image = new VMImage();
+		VMCodeGenerator* codeGenerator = new VMCodeGenerator();
+		// Print AST
+		//root->print();
+		// Generate code
+		codeGenerator->generateCode(image, root);
+		delete codeGenerator;
+		delete image;
+	}
+	delete parser;
+
+}
+
+
 int main()
 {
-
 	//vmTest();
-	
 	//lexerTest();
-	
-	compilerTest();
-
+	//compilerTest();
 	//syntaxTreeTest();
+	codeGeneratorTest();
 
 	return 0;
 }

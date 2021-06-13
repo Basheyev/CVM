@@ -53,6 +53,10 @@ void VMNode::removeAll() {
 }
 
 
+VMNodeType VMNode::getType() {
+	return type;
+}
+
 Token VMNode::getToken() {
 	return token;
 }

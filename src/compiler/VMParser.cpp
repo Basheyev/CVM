@@ -6,7 +6,7 @@
 *
 ============================================================================*/
 
-#include "compiler/VMSyntaxTree.h"
+#include "compiler/VMParser.h"
 #include <iostream>
 
 using namespace vm;
@@ -16,19 +16,19 @@ constexpr Token TKN_BLOCK = { TokenType::NONE, "BLOCK", 5, 0, 0 };
 constexpr Token TKN_ZERO = { TokenType::CONST_INTEGER, "0", 1, 0, 0 };
 constexpr Token TKN_MINUS = { TokenType::MINUS, "-", 1, 0, 0 };
 
-VMSyntaxTree::VMSyntaxTree() {
+VMParser::VMParser() {
 	lexer = new VMLexer();
 	root = NULL;
 	currentToken = 0;
 }
 
-VMSyntaxTree::~VMSyntaxTree() {
+VMParser::~VMParser() {
 	delete root;
 	delete lexer;
 }
 
 
-VMNode* VMSyntaxTree::parse(const char* source) {
+VMNode* VMParser::parse(const char* source) {
 	
 	if (root != NULL) {
 		root->removeAll();
@@ -61,7 +61,7 @@ VMNode* VMSyntaxTree::parse(const char* source) {
 // Tokens vector parsing recursive methods
 //-----------------------------------------------------------------------------
 
-VMNode* VMSyntaxTree::parseModule() {
+VMNode* VMParser::parseModule() {
 	checkToken(TokenType::MODULE, "Module keyword expected");
 	next();
 	checkToken(TokenType::IDENTIFIER, "Module name expected");
@@ -70,7 +70,6 @@ VMNode* VMSyntaxTree::parseModule() {
 	checkToken(TokenType::EOS, "End of statement ';' expected");
 	
 	VMNode* moduleBlock = new VMNode(moduleName, VMNodeType::MODULE);
-	VMNode* function;
 	Token functionCheck;
 	while (next()) {
 		functionCheck = lexer->getToken(currentToken + 2);
@@ -88,7 +87,7 @@ VMNode* VMSyntaxTree::parseModule() {
 //-----------------------------------------------------------------------------
 // Parse declaration
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseDeclaration() {
+VMNode* VMParser::parseDeclaration() {
 	Token dataType = getToken();
 	if (!isDataType(dataType.type)) raiseError("Variable data type expected");
 	VMNode* variableDeclaration = new VMNode(dataType, VMNodeType::DATA_TYPE);
@@ -106,7 +105,7 @@ VMNode* VMSyntaxTree::parseDeclaration() {
 //-----------------------------------------------------------------------------
 // Parse function
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseFunction() {
+VMNode* VMParser::parseFunction() {
 	Token dataType = getToken();
 	if (!isDataType(dataType.type)) raiseError("Function return data type expected");
 	VMNode* returnType = new VMNode(dataType, VMNodeType::DATA_TYPE); next();
@@ -129,7 +128,7 @@ VMNode* VMSyntaxTree::parseFunction() {
 }
 
 
-VMNode* VMSyntaxTree::parseParameters() {
+VMNode* VMParser::parseParameters() {
 	Token dataType = getToken();
 	if (!isDataType(dataType.type)) raiseError("Funcation parameter data type expected");
 	VMNode* parameterDeclaration = new VMNode(dataType, VMNodeType::DATA_TYPE); next();
@@ -143,7 +142,7 @@ VMNode* VMSyntaxTree::parseParameters() {
 //-----------------------------------------------------------------------------
 // Parse block of statements
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseBlock() {
+VMNode* VMParser::parseBlock() {
 	if (!isTokenType(TokenType::OP_BRACES)) return parseStatement();
 	VMNode* block = new VMNode(TKN_BLOCK, VMNodeType::BLOCK);
 	while (next()) {
@@ -158,12 +157,19 @@ VMNode* VMSyntaxTree::parseBlock() {
 //-----------------------------------------------------------------------------
 // Parse statement
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseStatement() {
+VMNode* VMParser::parseStatement() {
 	Token token = getToken();
 	if (isDataType(token.type)) return parseDeclaration(); else
 	if (token.type == TokenType::IDENTIFIER) return parseAssignment(); else
 	if (token.type == TokenType::IF) return parseIf(); else 
-	if (token.type == TokenType::WHILE) return parseWhile(); else {
+	if (token.type == TokenType::WHILE) return parseWhile(); else
+	if (token.type == TokenType::RETURN) {
+		VMNode* returnStmt = new VMNode(token, VMNodeType::RETURN); next();
+		VMNode* expr = parseExpression();
+		returnStmt->addChild(expr);
+		return returnStmt;
+	}
+	else {
 		raiseError("Unexpected token, statement expected");
 	}
 	return NULL;
@@ -172,7 +178,7 @@ VMNode* VMSyntaxTree::parseStatement() {
 //-----------------------------------------------------------------------------
 // Parse if-else
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseIf() {
+VMNode* VMParser::parseIf() {
 	VMNode* ifblock = new VMNode(getToken(), VMNodeType::IF_STATEMENT); next();
 	checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
 	next();	ifblock->addChild(parseCondition());
@@ -189,7 +195,7 @@ VMNode* VMSyntaxTree::parseIf() {
 //-----------------------------------------------------------------------------
 // Parse while 
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseWhile() {
+VMNode* VMParser::parseWhile() {
 	VMNode* whileBlock = new VMNode(getToken(), VMNodeType::WHILE_STATEMENT); next();
 	checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
 	next(); whileBlock->addChild(parseCondition());
@@ -202,10 +208,10 @@ VMNode* VMSyntaxTree::parseWhile() {
 //-----------------------------------------------------------------------------
 // Parse assignment
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseAssignment() {
+VMNode* VMParser::parseAssignment() {
 	Token identifier = getToken(); next();
 	checkToken(TokenType::ASSIGN, "Assignment operator '=' expected");
-	VMNode* op = new VMNode(getToken(), VMNodeType::BINARY_OPERATION); next();
+	VMNode* op = new VMNode(getToken(), VMNodeType::ASSIGNMENT); next();
 	VMNode* a = new VMNode(identifier, VMNodeType::SYMBOL);
 	VMNode* b = parseCondition();
 	op->addChild(a);
@@ -217,7 +223,7 @@ VMNode* VMSyntaxTree::parseAssignment() {
 //-----------------------------------------------------------------------------
 // Parse condition
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseCondition() {
+VMNode* VMParser::parseCondition() {
 	VMNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
 	operand1 = parseExpression();
 	Token token = getToken();
@@ -237,7 +243,7 @@ VMNode* VMSyntaxTree::parseCondition() {
 //-----------------------------------------------------------------------------
 // Parse expression
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseExpression() {
+VMNode* VMParser::parseExpression() {
 	VMNode *operand1, *operand2, *op = NULL, *prevOp = NULL;
 	operand1 = parseTerm();
 	Token token = getToken();
@@ -256,7 +262,7 @@ VMNode* VMSyntaxTree::parseExpression() {
 //-----------------------------------------------------------------------------
 // Parse term
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseTerm() {
+VMNode* VMParser::parseTerm() {
 	VMNode *operand1, *operand2, *op = NULL, *prevOp = NULL;
 	operand1 = parseFactor();
 	Token token = getToken();
@@ -275,7 +281,7 @@ VMNode* VMSyntaxTree::parseTerm() {
 //-----------------------------------------------------------------------------
 // Parse factor
 //-----------------------------------------------------------------------------
-VMNode* VMSyntaxTree::parseFactor() {
+VMNode* VMParser::parseFactor() {
 	VMNode* factor = NULL;	
 	bool unaryMinus = false;
 

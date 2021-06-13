@@ -18,11 +18,11 @@ namespace vm {
 	} ParserException;
 
 
-	class VMSyntaxTree {
+	class VMParser {
 	public:
 
-		VMSyntaxTree();
-		~VMSyntaxTree();
+		VMParser();
+		~VMParser();
 
 		VMNode* parse(const char* source);
 

@@ -7,16 +7,29 @@
 ============================================================================*/
 #pragma once
 
+#include "image/VMImage.h"
+#include "compiler/VMNode.h"
+#include "compiler/VMParser.h"
+
 
 namespace vm {
 
     class VMCodeGenerator {
     public:
-
+        VMCodeGenerator();
+        ~VMCodeGenerator();
+        void generateCode(VMImage* img, VMNode* rootNode);
 
     private:
 
+        void emitFunction(VMNode* assignment);
+        void emitIfElse(VMNode* assignment);
+        void emitWhile(VMNode* assignment);
+        void emitAssignment(VMNode* assignment);
+        void emitExpression(VMNode* expression);
 
+
+        WORD getOpCode(Token& token);
 
     };
 
