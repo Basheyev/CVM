@@ -31,7 +31,7 @@ void VMCompiler::compile(const char* sourceCode, VMImage* destImage) {
 	currentToken = 0;
 	this->destImage = destImage;
 	parseExpression();
-	destImage->dissasemble();
+	destImage->disassemble();
 }
 
 

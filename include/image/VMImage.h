@@ -32,7 +32,7 @@ namespace vm {
 		void* getImage();
 		size_t getImageSize();
 
-		void dissasemble();
+		void disassemble();
 
 	private:
 

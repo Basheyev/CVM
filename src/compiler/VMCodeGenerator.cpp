@@ -6,6 +6,20 @@
 *
 ============================================================================*/
 
+// Questions
+// 1. How to store and access local variables & parameters (recursion)?
+//    a) How to store local variables?
+//    b) How to pass parameters?
+//    c) Do i need FP special VM opcodes to access local variables?
+//    d) Is Frame theme has relation to my problem?
+// 2. How to replace symbols by addresses?
+// 3. How to layout code in image?
+//    a) Maybe generate vector of opcode of body for each function (with symbols)
+//    b) Collect all variables and constants in symbol table with addresses
+//    c) Replace symbols with addresses
+// 4. I have 3 enumeration sets: OP_CODES, TokenType, NodeType (which one to use ad Node to get better code generation?)
+
+
 #include "compiler/VMCodeGenerator.h"
 
 #include <iostream>
@@ -29,23 +43,21 @@ void VMCodeGenerator::generateCode(VMImage* img, VMNode* rootNode) {
     cout << endl;
     for (int i = 0; i < rootNode->getChildCount(); i++) {
         VMNode* node = rootNode->getChild(i);
-        if (node->getType() == VMNodeType::FUNCTION) {
-            VMNode* body = node->getChild(2); // 0 - type, 1 - parameters, 2 - body
-            for (int j = 0; j < body->getChildCount(); j++) {
-                VMNode* statement = body->getChild(j);
-                if (statement->getType() == VMNodeType::ASSIGNMENT) {
-                    cout << endl;
-                    emitAssignment(statement);
-                }
-            }
-        }
-
+        if (node->getType() == VMNodeType::FUNCTION) emitFunction(node);
     }
 }
 
 
-void VMCodeGenerator::emitFunction(VMNode* assignment) {
-
+void VMCodeGenerator::emitFunction(VMNode* node) {
+    // Childs: #0 - type, #1 - parameters, #2 - function body
+    VMNode* body = node->getChild(2); 
+    for (int j = 0; j < body->getChildCount(); j++) {
+        VMNode* statement = body->getChild(j);
+        if (statement->getType() == VMNodeType::ASSIGNMENT) {
+            cout << endl;
+            emitAssignment(statement);
+        }
+    }
 }
 
 

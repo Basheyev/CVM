@@ -14,6 +14,14 @@
 
 namespace vm {
 
+
+    class VMSymbolTable {
+        char* name;
+        int type;
+        WORD address;
+    };
+
+
     class VMCodeGenerator {
     public:
         VMCodeGenerator();
