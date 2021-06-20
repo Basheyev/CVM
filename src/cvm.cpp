@@ -32,7 +32,7 @@ void createExecutableImage(VMImage* img, WORD iterations) {
 
 	WORD addr = img->emit(OP_PUSH, iVar);       // stack <- [iVar] (operand 1)
 	img->emit(OP_DEC);                          // stack[top]--  (operand 1 decrement)
-	img->emit(OP_CALL, fn);                     // Call function fn()     
+	img->emit(OP_CALL, fn, 0);                  // Call function fn()     
 	img->emit(OP_DUP);                          // duplicate stack top (operand 1 duplicate)
 	img->emit(OP_POP, iVar);                    // stack -> [iVar] (pop operand 1 duplicate to iVar)
 	img->emit(OP_CONST, 0);                     // push const 0 (operand 2)
@@ -60,44 +60,50 @@ void createExecutableImage(VMImage* img, WORD iterations) {
 //-------------------------------------------------------------------
 void createExecutableImage2(VMImage* img, WORD iterations) {
 
-	WORD dataSeg = 64;							// Data segment starts at 64
-	WORD myStr = dataSeg;
-	img->writeData(myStr, "Hello, world from VM!\n", 23);
+	WORD dataSeg = 128;							// Data segment starts at 64
+	WORD str = dataSeg;
+	img->writeData(str, "Hello, world from VM!\n", 23);
 
-	WORD fn = 32;
+	WORD power = 32;
+	WORD hello = 64;
 
-	img->emit(OP_CONST, iterations);
-	WORD addr = img->emit(OP_LOAD, 0);
+	img->emit(OP_CONST, iterations);            // initialize local variable #0
+	img->emit(OP_CONST, iterations);            // initialize local variable #0
+	img->emit(OP_CONST, iterations);            // initialize local variable #0
+	WORD addr = img->emit(OP_LOAD, 0);          // push to stack local variable #0
 	img->emit(OP_DEC);                          // stack[top]--  (operand 1 decrement)
-	img->emit(OP_CONST, 3);                     // pass const 3 as argument to fn(3)
-	img->emit(OP_CALL, fn);                     // Call function fn()     
-	img->emit(OP_DROP);                         // drop paramter from stack
 	img->emit(OP_DUP);                          // duplicate stack top (operand 1 duplicate)
-	img->emit(OP_STORE, 0);                     // stack -> [iVar] (pop operand 1 duplicate to iVar)
+	img->emit(OP_STORE, 0);                     // load top of stack to local variable #0
+	img->emit(OP_DUP);                          // duplicate stack top (operand 1 duplicate)
+	img->emit(OP_CALL, power, 1);               // Call function fn(a, b)  
+	img->emit(OP_SYSCALL, 0x21);                // print TOS int
 	img->emit(OP_CONST, 0);                     // push const 0 (operand 2)
-	img->emit(OP_CMPJG, addr);                  // if (operand1 > operand2) jump to addr           
+	img->emit(OP_CMPJG, addr);                  // if (operand1 > operand2) jump to addr   
 	img->emit(OP_HALT);                         // end of program
 
-	img->setEmitPointer(fn);                    // Function fn()
-	img->emit(OP_CONST, 10);                    // allocate and initialize variable #0 (a)
-	img->emit(OP_CONST, 5);                     // allocate and initialize variable #1 (b)
-	img->emit(OP_CONST, 15);                    // allocate and initialize variable #2 (c)
-	img->emit(OP_LOAD, 0);                      // load a
-	img->emit(OP_LOAD, 1);                      // load b
-	img->emit(OP_DIV);                          // a / b
-	img->emit(OP_ARG, 0);                       // load argment #0
-	img->emit(OP_ADD);
-	img->emit(OP_STORE, 2);                     // store c (c = a / b)
-
-	img->emit(OP_CONST, myStr);                 // Push constant string address
-	img->emit(OP_SYSCALL, 0x20);                // Call system call 0x20, to print C style string to standard output
+	// int power(a, b)
+	img->setEmitPointer(power);                 // int add(a,b)
+	img->emit(OP_ARG, 0);                       // load argment #0 (a)
+	img->emit(OP_DUP);
+	img->emit(OP_MUL);
+	img->emit(OP_CONST, str);
+	img->emit(OP_CALL, hello, 1);
+	img->emit(OP_DROP);                         // drop returned value from stack
 	img->emit(OP_RET);                          // Return
+
+	// int hello(str)
+	img->setEmitPointer(hello);                 // int hello(char*)
+	img->emit(OP_ARG, 0);                       // load argment #0 (str)
+	img->emit(OP_SYSCALL, 0x20);                // print string
+	img->emit(OP_CONST, 0);                     // set NULL on top of stack
+	img->emit(OP_RET);                          // Return NULL
+
 }
 
 
 void vmTest() {
 	VMImage* img = new VMImage();
-	createExecutableImage2(img, 10);
+	createExecutableImage2(img, 5);
 	VMRuntime* vm = new VMRuntime();
 	vm->loadImage(img->getImage(), img->getImageSize());
 	img->disassemble();

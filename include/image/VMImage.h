@@ -24,6 +24,7 @@ namespace vm {
 		WORD getEmitPointer();
 		WORD emit(WORD opcode);
 		WORD emit(WORD opcode, WORD operand);
+		WORD emit(WORD opcode, WORD operand1, WORD operand2);
 		
 		WORD readWord(WORD address);
 		void writeWord(WORD address, WORD value);
@@ -33,6 +34,7 @@ namespace vm {
 		size_t getImageSize();
 
 		void disassemble();
+		static WORD printMnemomic(WORD* memory, WORD virtualAddress);
 
 	private:
 

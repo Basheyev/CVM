@@ -20,8 +20,6 @@ using namespace vm;
 
 VMRuntime::VMRuntime() {
 	memset(memory, 0, MAX_MEMORY);
-	ip = 0;
-	sp = MAX_MEMORY - 1;
 }
 
 
@@ -33,9 +31,6 @@ VMRuntime::~VMRuntime() {
 bool VMRuntime::loadImage(void* image, size_t size) {
 	if (size > MAX_MEMORY * sizeof(WORD)) return false;
 	memcpy(memory, image, size);
-	ip = 0;
-	sp = MAX_MEMORY - 1;
-	fp = sp;
 	return true;
 }
 
@@ -49,9 +44,12 @@ void VMRuntime::run() {
 	ip = 0;
 	sp = MAX_MEMORY - 1;
 	fp = sp;
+	lp = sp - 1;
 
 	while (1) {
 
+		printState();
+		
 		opcode = memory[ip++];
 		
 		switch (opcode) {
@@ -175,15 +173,23 @@ void VMRuntime::run() {
 		//------------------------------------------------------------------------
 		case OP_CALL:
 			a = memory[ip++];      // get call address and increment address
+			b = memory[ip++];      // get arguments count (argc)
+			b = sp + b;            // calculate arguments pointer
 			memory[--sp] = ip;     // push return address to the stack
 			memory[--sp] = fp;     // push old Frame pointer to stack
-			fp = sp;               // save Stack pointer to new Frame pointer register
+			memory[--sp] = lp;     // push old Local variables pointer to stack
+			fp = b;                // set Frame pointer to arguments pointer
+			lp = sp - 1;           // set Local variables pointer after top of a stack
 			ip = a;                // jump to call address
 			break;
 		case OP_RET:
-			sp = fp;               // set stack pointer to Frame pointer
-			fp = memory[sp++];     // pop previous Frame pointer
-			ip = memory[sp++];     // jump to return address
+			a = memory[sp++];      // read function return value on top of a stack
+			b = lp;                // save Local variables pointer
+			sp = fp;               // set stack pointer to Frame pointer (drop locals)
+			lp = memory[b + 1];    // restore old Local variables pointer
+			fp = memory[b + 2];    // restore old Frame pointer
+			ip = memory[b + 3];    // set IP to return address
+			memory[--sp] = a;      // save return value on top of a stack
 			break;
 		case OP_SYSCALL:
 			a = memory[ip++];      // read system call index from top of the stack
@@ -197,17 +203,17 @@ void VMRuntime::run() {
 		//------------------------------------------------------------------------
 		case OP_LOAD:
 			a = memory[ip++];         // read local variable index
-			b = fp - a - 1;           // calculate local variable address
+			b = lp - a;               // calculate local variable address
 			memory[--sp] = memory[b]; // push local variable to stack
 			break;
 		case OP_STORE:
 			a = memory[ip++];         // read local variable index
-			b = fp - a - 1;           // calculate local variable address
+			b = lp - a;               // calculate local variable address
 			memory[b] = memory[sp++]; // pop top of stack to local variable
 			break;
 		case OP_ARG:
 			a = memory[ip++];         // read parameter index
-			b = fp + a + 2;           // calculate parameter address
+			b = fp - a - 1;           // calculate parameter address
 			memory[--sp] = memory[b]; // push parameter to stack
 			break;
 		case OP_DROP:                 // pop and drop value from stack
@@ -219,18 +225,21 @@ void VMRuntime::run() {
 			return;
 		}
 
-		printState();
 	}
 
 }
 
 
 void VMRuntime::systemCall(WORD n) {
-	WORD ptr;
+	WORD ptr, a, b;
 	switch (n) {
 	case 0x20:  // print C style string
 		ptr = memory[sp++];
 		cout << ((char*)&memory[ptr]);
+		break;
+	case 0x21:  // print int from TOS
+		a = memory[sp++];
+		cout << a << endl;
 		break;
 	}
 }
@@ -283,10 +292,13 @@ WORD VMRuntime::getSP() {
  Prints IP, SP and STACK value to standard out
 */
 void VMRuntime::printState() {
-	cout << "IP=" << ip << " FP=" << fp << " SP=" << sp << " STACK=[";
+	cout << "IP=" << ip << " FP=" << fp << " LP=" << lp << " SP=" << sp << " STACK=[";
 	for (WORD i = MAX_MEMORY - 2; i >= sp; i--) {
 		cout << memory[i];
 		if (i > sp) cout << ",";
 	}
 	cout << "] -> TOP" << endl;
+	VMImage::printMnemomic(&memory[ip], ip);
+	cout << "\t";
+
 }

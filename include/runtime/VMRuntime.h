@@ -82,6 +82,7 @@ namespace vm {
 		WORD  ip;                                   // Instruction pointer
 		WORD  sp;                                   // Stack pointer
 		WORD  fp;                                   // Frame pointer
+		WORD  lp;                                   // Local variables pointer
 	
 		void systemCall(WORD n);                    // System call (interruption)
 		void printState();                          // Print current VM state

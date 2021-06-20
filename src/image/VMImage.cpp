@@ -74,6 +74,19 @@ WORD VMImage::emit(WORD opcode, WORD operand) {
 }
 
 /*
+ Sequentially writes opcode and operand starting from the current EP address and increments EP by 2
+*/
+WORD VMImage::emit(WORD opcode, WORD operand1, WORD operand2) {
+	WORD opAddr = ep;
+	memory[ep++] = opcode;
+	memory[ep++] = operand1;
+	memory[ep++] = operand2;
+	if (ep > imageSize) imageSize = ep;
+	return opAddr;
+}
+
+
+/*
  Writes data to specified address
 */
 WORD VMImage::writeData(WORD address, void* data, WORD bytesCount) {
@@ -122,67 +135,94 @@ void VMImage::disassemble() {
 	WORD opcode;
 	WORD previousOp = 0xFFFFFFFF;
 	WORD ip = 0;
+	bool haltFlag = false;
 
 	cout << "-----------------------------------------------------" << endl;
 	cout << "Virtual machine image dissasembly" << endl;
 	cout << "-----------------------------------------------------" << endl;
+	WORD offset;
 	while (ip < imageSize) {
-
 		opcode = memory[ip];
-		if (opcode != OP_HALT || previousOp != opcode) cout << "[" << setw(4) << ip << "]    ";
-		ip++;
+		if (opcode != 0) {
+			offset = printMnemomic(&memory[ip], ip);
+			cout << endl;
+			ip += offset;
+			haltFlag = false;
+		}
+		else {
+			if (haltFlag == false) printMnemomic(&memory[ip], ip), cout << endl;
+			ip++;
+			haltFlag = true;
+		}
+		previousOp = opcode;
+	}
+}
 
-		switch (opcode) {
+
+
+WORD VMImage::printMnemomic(WORD* memory, WORD virtualAddress) {
+	
+	static WORD previousOp = 0xFFFFFFFF;
+
+	WORD opcode;
+	WORD ip = 0;
+
+	opcode = memory[ip];
+	if (opcode != OP_HALT || previousOp != opcode) cout << "[" << setw(4) << virtualAddress << "]    ";
+	ip++;
+
+	switch (opcode) {
 		//------------------------------------------------------------------------
 		// STACK OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_CONST:	cout << "iconst  " << memory[ip++] << endl; break;
-		case OP_PUSH:   cout << "ipush   [" << memory[ip++] << "]" << endl; break;
-		case OP_POP:    cout << "ipop    [" << memory[ip++] << "]" << endl; break;
-		case OP_DUP:    cout << "idup    " << endl; break;
+	case OP_CONST:	cout << "iconst  " << memory[ip++]; break;
+	case OP_PUSH:   cout << "ipush   [" << memory[ip++] << "]"; break;
+	case OP_POP:    cout << "ipop    [" << memory[ip++] << "]"; break;
+	case OP_DUP:    cout << "idup    " ; break;
 		//------------------------------------------------------------------------
 		// ARITHMETIC OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_INC: cout << "iinc    " << endl; break;
-		case OP_DEC: cout << "idec    " << endl; break;
-		case OP_ADD: cout << "iadd    " << endl; break;
-		case OP_SUB: cout << "isub    " << endl; break;
-		case OP_MUL: cout << "imul    " << endl; break;
-		case OP_DIV: cout << "idiv    " << endl; break;
+	case OP_INC: cout << "iinc    "; break;
+	case OP_DEC: cout << "idec    "; break;
+	case OP_ADD: cout << "iadd    "; break;
+	case OP_SUB: cout << "isub    "; break;
+	case OP_MUL: cout << "imul    "; break;
+	case OP_DIV: cout << "idiv    "; break;
 		//------------------------------------------------------------------------
 		// BITWISE OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_AND: cout << "iand    " << endl; break;
-		case OP_OR:  cout << "ior     " << endl; break;
-		case OP_XOR: cout << "ixor    " << endl; break;
-		case OP_NOT: cout << "inot    " << endl; break;
-		case OP_SHL: cout << "ishl    " << endl; break;
-		case OP_SHR: cout << "ishr    " << endl; break;
+	case OP_AND: cout << "iand    "; break;
+	case OP_OR:  cout << "ior     "; break;
+	case OP_XOR: cout << "ixor    "; break;
+	case OP_NOT: cout << "inot    "; break;
+	case OP_SHL: cout << "ishl    "; break;
+	case OP_SHR: cout << "ishr    "; break;
 		//------------------------------------------------------------------------
 		// FLOW CONTROL OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_JMP:   cout << "jmp     " << memory[ip++] << endl; break;
-		case OP_CMPJE: cout << "icmpje  " << memory[ip++] << endl; break;
-		case OP_CMPJNE:cout << "icmpjne " << memory[ip++] << endl; break;
-		case OP_CMPJG: cout << "icmpjg  " << memory[ip++] << endl; break;
-		case OP_CMPJGE:cout << "icmpjge " << memory[ip++] << endl; break;
-		case OP_CMPJL: cout << "icmpjl  " << memory[ip++] << endl; break;
-		case OP_CMPJLE:cout << "icmpjle " << memory[ip++] << endl; break;
+	case OP_JMP:   cout << "jmp     [" << memory[ip++] << "]"; break;
+	case OP_CMPJE: cout << "icmpje  [" << memory[ip++] << "]"; break;
+	case OP_CMPJNE:cout << "icmpjne [" << memory[ip++] << "]"; break;
+	case OP_CMPJG: cout << "icmpjg  [" << memory[ip++] << "]"; break;
+	case OP_CMPJGE:cout << "icmpjge [" << memory[ip++] << "]"; break;
+	case OP_CMPJL: cout << "icmpjl  [" << memory[ip++] << "]"; break;
+	case OP_CMPJLE:cout << "icmpjle [" << memory[ip++] << "]"; break;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_CALL:    cout << "call    [" << memory[ip++] << "]" << endl; break;
-		case OP_RET:     cout << "ret     " << endl; break;
-		case OP_SYSCALL: cout << "syscall 0x" << setbase(16) << memory[ip++] << setbase(10) << endl; break;
-		case OP_HALT: 	 if (previousOp != opcode) cout << "---- halt ----" << endl; break;
-		case OP_LOAD:	cout << "iload   " << memory[ip++] << endl; break;
-		case OP_STORE:	cout << "istore  " << memory[ip++] << endl; break;
-		case OP_ARG:	cout << "iarg    " << memory[ip++] << endl; break;
-		case OP_DROP:	cout << "idrop   " << memory[ip++] << endl; break;
-		default:
-			cout << "0x" << setbase(16) << opcode << setbase(10) << endl;
-		}
-
-		previousOp = opcode;
+	case OP_CALL:    cout << "call    [" << memory[ip++] << "], " << memory[ip++]; break;
+	case OP_RET:     cout << "ret     "; break;
+	case OP_SYSCALL: cout << "syscall 0x" << setbase(16) << memory[ip++] << setbase(10); break;
+	case OP_HALT: 	 if (previousOp != opcode) cout << "---- halt ----"; break;
+	case OP_LOAD:	cout << "iload   #" << memory[ip++]; break;
+	case OP_STORE:	cout << "istore  #" << memory[ip++]; break;
+	case OP_ARG:	cout << "iarg    #" << memory[ip++]; break;
+	case OP_DROP:	cout << "idrop   "; break;
+	default:
+		cout << "0x" << setbase(16) << opcode << setbase(10);
 	}
+
+	previousOp = opcode;
+
+	return ip;
 }
