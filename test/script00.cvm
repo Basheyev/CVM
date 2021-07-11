@@ -1,6 +1,17 @@
 module HelloWorld;
 
+
+int sum(int a, int b) {
+	return a + b;
+}
+
 int main() { 
-	sum(1,2);
+	int a,b,c;
+	a = 100;
+	b = 200;
+	c = sum(1,2) + 300;
+	if (c > 300) {
+		puti(c);	
+	}
 	return c;
 }

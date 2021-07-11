@@ -1,23 +1,18 @@
 /*============================================================================
 *
-*Virtual Machine Compiler code generator imlementation
+*  Virtual Machine Compiler code generator imlementation
 *
-*(C)Bolat Basheyev 2021
+*  (C)Bolat Basheyev 2021
 *
 ============================================================================*/
 
 // Questions
-// 1. How to store and access local variables & parameters (recursion)?
-//    a) How to store local variables?
-//    b) How to pass parameters?
-//    c) Do i need FP special VM opcodes to access local variables?
-//    d) Is Frame theme has relation to my problem?
-// 2. How to replace symbols by addresses?
-// 3. How to layout code in image?
+// 1. How to replace symbols by addresses?
+// 2. How to layout code in image?
 //    a) Maybe generate vector of opcode of body for each function (with symbols)
 //    b) Collect all variables and constants in symbol table with addresses
 //    c) Replace symbols with addresses
-// 4. I have 3 enumeration sets: OP_CODES, TokenType, NodeType (which one to use ad Node to get better code generation?)
+// 3. I have 3 enumeration sets: OP_CODES, TokenType, NodeType (which one to use add Node to get better code generation?)
 
 
 #include "compiler/VMCodeGenerator.h"

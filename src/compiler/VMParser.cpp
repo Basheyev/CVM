@@ -22,6 +22,8 @@
 *  <term>            ::= <factor> {(*|/) <factor>}
 *  <factor>          ::= ({-|+} <number>) | <identifer> | <call>
 * 
+* todo: unary not, and binary operations
+* 
 ============================================================================*/
 
 #include "compiler/VMParser.h"
@@ -55,7 +57,7 @@ VMNode* VMParser::parse(const char* source) {
 
 	currentToken = 0;
 	lexer->parseToTokens(source);
-	lexer->printAllTokens();
+	//lexer->printAllTokens();
 
 	try {
 
@@ -109,7 +111,7 @@ VMNode* VMParser::parseModule() {
 //-----------------------------------------------------------------------------
 VMNode* VMParser::parseDeclaration() {
 	Token dataType = getToken();
-	if (!isDataType(dataType.type)) raiseError("Variable data type expected");
+	if (!isDataType(dataType.type)) raiseError("Data type expected");
 	VMNode* variableDeclaration = new VMNode(dataType, VMNodeType::DATA_TYPE);
 	while (next()) {
 		if (isTokenType(TokenType::COMMA)) continue;
@@ -358,8 +360,12 @@ VMNode* VMParser::parseFactor() {
 	} else if (isTokenType(TokenType::CONST_INTEGER)) { 
 		factor = new VMNode(getToken(), VMNodeType::CONSTANT); next(); 
 	} else if (isTokenType(TokenType::IDENTIFIER)) { 
-		factor = new VMNode(getToken(), VMNodeType::SYMBOL); next(); 
-		//if (isTokenType(TokenType::OP_PARENTHESES)); read parameters
+		Token nextToken = getNextToken();
+		if (nextToken.type == TokenType::OP_PARENTHESES) {
+			factor = parseCall(); next();
+		} else {
+			factor = new VMNode(getToken(), VMNodeType::SYMBOL); next();
+		}
 	} 
 	else raiseError("Number or identifier expected");
 
