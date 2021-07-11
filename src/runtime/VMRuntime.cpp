@@ -174,7 +174,7 @@ void VMRuntime::run() {
 		case OP_CALL:
 			a = memory[ip++];      // get call address and increment address
 			b = memory[ip++];      // get arguments count (argc)
-			b = sp + b;            // calculate arguments pointer
+			b = sp + b;            // calculate new frame pointer
 			memory[--sp] = ip;     // push return address to the stack
 			memory[--sp] = fp;     // push old Frame pointer to stack
 			memory[--sp] = lp;     // push old Local variables pointer to stack

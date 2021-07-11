@@ -49,7 +49,7 @@ void VMLexer::parseToTokens(const char* sourceCode) {
 		delimeter = isDelimeter(value);                                // is delimeter found?
 		length = cursor - start;                                       // measure token length
 		
-        // Diffirentiaite real numbers from member access operator '.'
+        // Diffirentiate real numbers from member access operator '.'
 		isNumber = identifyNumber(start, length - 1);                  // Try to get integer part of real number
 		isReal = (value=='.' && isNumber==TokenType::CONST_INTEGER);   // Is current token is real number
 
@@ -82,7 +82,12 @@ void VMLexer::parseToTokens(const char* sourceCode) {
 
 
 bool VMLexer::isBlank(char value) {
-	return value == '\x20' || value == '\t' || value == '\n';
+	char* cursor = BLANKS;
+	while (*cursor != NULL) {
+		if (*cursor == value) return true;
+		cursor++;
+	}
+	return false;
 }
 
 
@@ -188,6 +193,9 @@ TokenType VMLexer::pushToken(char* text, size_t length) {
 	}
 	else {
 		// TODO warn about unknown token we didnt pushed to vector
+		// cout << "LEXER ERROR: unkown token '";
+		// cout.write(text, length);
+		// cout << "' at row " << rowCounter << ", col " << (WORD)(text - rowPointer) << "." << endl;
 	}
 	return type;
 }

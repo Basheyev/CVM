@@ -64,39 +64,31 @@ void createExecutableImage2(VMImage* img, WORD iterations) {
 	WORD str = dataSeg;
 	img->writeData(str, "Hello, world from VM!\n", 23);
 
-	WORD power = 32;
+	WORD sum = 32;
 	WORD hello = 64;
 
-	img->emit(OP_CONST, iterations);            // initialize local variable #0
-	img->emit(OP_CONST, iterations);            // initialize local variable #0
 	img->emit(OP_CONST, iterations);            // initialize local variable #0
 	WORD addr = img->emit(OP_LOAD, 0);          // push to stack local variable #0
 	img->emit(OP_DEC);                          // stack[top]--  (operand 1 decrement)
 	img->emit(OP_DUP);                          // duplicate stack top (operand 1 duplicate)
 	img->emit(OP_STORE, 0);                     // load top of stack to local variable #0
 	img->emit(OP_DUP);                          // duplicate stack top (operand 1 duplicate)
-	img->emit(OP_CALL, power, 1);               // Call function fn(a, b)  
+	img->emit(OP_CONST, 10);                    // push const
+	img->emit(OP_CALL, sum, 2);                 // Call function fn(a, b)  
 	img->emit(OP_SYSCALL, 0x21);                // print TOS int
 	img->emit(OP_CONST, 0);                     // push const 0 (operand 2)
 	img->emit(OP_CMPJG, addr);                  // if (operand1 > operand2) jump to addr   
 	img->emit(OP_HALT);                         // end of program
 
-	// int power(a, b)
-	img->setEmitPointer(power);                 // int add(a,b)
+	// int sum(a, b)
+	img->setEmitPointer(sum);                   // int sum(a,b)
+	img->emit(OP_CONST, 10);                    // int c = 10
 	img->emit(OP_ARG, 0);                       // load argment #0 (a)
-	img->emit(OP_DUP);
-	img->emit(OP_MUL);
-	img->emit(OP_CONST, str);
-	img->emit(OP_CALL, hello, 1);
-	img->emit(OP_DROP);                         // drop returned value from stack
-	img->emit(OP_RET);                          // Return
-
-	// int hello(str)
-	img->setEmitPointer(hello);                 // int hello(char*)
-	img->emit(OP_ARG, 0);                       // load argment #0 (str)
-	img->emit(OP_SYSCALL, 0x20);                // print string
-	img->emit(OP_CONST, 0);                     // set NULL on top of stack
-	img->emit(OP_RET);                          // Return NULL
+	img->emit(OP_ARG, 1);                       // load argment #1 (b)
+	img->emit(OP_ADD);                          // a+b	
+	img->emit(OP_LOAD, 0);                      // load local variable (c)
+	img->emit(OP_SUB);                          // (a+b) - c
+	img->emit(OP_RET);                          // Return TOS
 
 }
 
@@ -227,11 +219,11 @@ void codeGeneratorTest() {
 
 int main()
 {
-	vmTest();
+	//vmTest();
 	//lexerTest();
 	//compilerTest();
-	//syntaxTreeTest();
+	syntaxTreeTest();
 	//codeGeneratorTest();
-
+	
 	return 0;
 }

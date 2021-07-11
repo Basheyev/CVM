@@ -3,7 +3,25 @@
 *  Abstract Syntax Tree class implementation
 *
 *  (C) Bolat Basheyev 2021
-*
+*  
+*  C like simplified language grammar - define language grammar:
+* 
+*  <module>          ::= 'module' <identifier> {<declaration>|<function>}*
+*  <data-type>       ::= 'int'
+*  <declaration>     ::= <data-type> <identifier> {','<identifier>}* ';' 
+*  <function>        ::= <data-type> <identifier> '(' <argument> {, <argument>}* ')' <block>
+*  <argument>        ::= <data-type> <identifier>
+*  <statement>       ::= <block> | <declration> | <assignment> | <if-statement> | <while-statement> | <jump-statement> | <call>)
+*  <call>            ::= <identifier> '(' {<expression>} {, expression}* ')'
+*  <block>           ::= '{' {<statement>}* '}'
+*  <if-statement>    ::= 'if' '(' <expression> ')' <statement>
+*  <while-statement> ::= 'while' '(' <expression> ')' <statement>
+*  <jump-statement>  ::= 'return' <expression> ';'
+*  <assignment>      ::= <identifier> = <expression> ';'
+*  <expression>      ::= <term> {(+|-) <term>}
+*  <term>            ::= <factor> {(*|/) <factor>}
+*  <factor>          ::= ({-|+} <number>) | <identifer> | <call>
+* 
 ============================================================================*/
 
 #include "compiler/VMParser.h"
@@ -37,13 +55,14 @@ VMNode* VMParser::parse(const char* source) {
 
 	currentToken = 0;
 	lexer->parseToTokens(source);
+	lexer->printAllTokens();
 
 	try {
 
 		root = parseModule();
 	}
 	catch (ParserException& e) {
-		// nodes memory leakage
+		// FIXME nodes memory leakage when exception thrown
 		cerr << "ParserException: " << e.msg << endl;
 		cerr << "Token: ";
 		cerr.write(e.token.text, e.token.length);
@@ -58,9 +77,9 @@ VMNode* VMParser::parse(const char* source) {
 
 
 //-----------------------------------------------------------------------------
-// Tokens vector parsing recursive methods
+// Rule:
+// <module> ::= 'module' <identifier> {<declaration>|<function>}*
 //-----------------------------------------------------------------------------
-
 VMNode* VMParser::parseModule() {
 	checkToken(TokenType::MODULE, "Module keyword expected");
 	next();
@@ -85,7 +104,8 @@ VMNode* VMParser::parseModule() {
 
 
 //-----------------------------------------------------------------------------
-// Parse declaration
+// Rule:
+// <declaration> ::= <data-type> <identifier> {','<identifier>}* ';' 
 //-----------------------------------------------------------------------------
 VMNode* VMParser::parseDeclaration() {
 	Token dataType = getToken();
@@ -103,7 +123,8 @@ VMNode* VMParser::parseDeclaration() {
 
 
 //-----------------------------------------------------------------------------
-// Parse function
+// Rule:
+// <function> ::= <data-type> <identifier> '(' <argument> {, <argument>}* ')' <block>
 //-----------------------------------------------------------------------------
 VMNode* VMParser::parseFunction() {
 	Token dataType = getToken();
@@ -115,7 +136,7 @@ VMNode* VMParser::parseFunction() {
 	while (next()) {
 		if (isTokenType(TokenType::CL_PARENTHESES)) break;
 		if (isTokenType(TokenType::COMMA)) continue;
-		parameters->addChild(parseParameters());
+		parameters->addChild(parseArguments());
 	}
 	next();
 	VMNode* functionBody = parseBlock();
@@ -127,8 +148,11 @@ VMNode* VMParser::parseFunction() {
 	return function;
 }
 
-
-VMNode* VMParser::parseParameters() {
+//-----------------------------------------------------------------------------
+// Rule:
+// <argument> ::= <data-type> <identifier>
+//-----------------------------------------------------------------------------
+VMNode* VMParser::parseArguments() {
 	Token dataType = getToken();
 	if (!isDataType(dataType.type)) raiseError("Funcation parameter data type expected");
 	VMNode* parameterDeclaration = new VMNode(dataType, VMNodeType::DATA_TYPE); next();
@@ -138,12 +162,32 @@ VMNode* VMParser::parseParameters() {
 	return parameterDeclaration;
 }
 
+//-----------------------------------------------------------------------------
+// Rule:
+// <call> ::= <identifier> '(' {<expression>} {, expression}* ')'
+//-----------------------------------------------------------------------------
+VMNode* VMParser::parseCall() {
+	Token identifier = getToken();
+	VMNode* callNode = new VMNode(identifier, VMNodeType::CALL); next();
+	if (!isTokenType(TokenType::OP_PARENTHESES)) raiseError("Opening parentheses '(' expected.");
+	while (next()) {
+		Token tkn = getToken();
+		if (isTokenType(TokenType::CL_PARENTHESES)) break;
+		if (isTokenType(TokenType::COMMA)) continue;
+		VMNode* param = parseExpression();
+		callNode->addChild(param);
+		if (isTokenType(TokenType::CL_PARENTHESES)) break;
+	}
+	return callNode;
+}
+
 
 //-----------------------------------------------------------------------------
-// Parse block of statements
+// Rule:
+// <block> ::= '{' {<statement>}* '}'
 //-----------------------------------------------------------------------------
 VMNode* VMParser::parseBlock() {
-	if (!isTokenType(TokenType::OP_BRACES)) return parseStatement();
+	//if (!isTokenType(TokenType::OP_BRACES)) return parseStatement();
 	VMNode* block = new VMNode(TKN_BLOCK, VMNodeType::BLOCK);
 	while (next()) {
 		if (isTokenType(TokenType::CL_BRACES)) break;
@@ -155,12 +199,26 @@ VMNode* VMParser::parseBlock() {
 
 
 //-----------------------------------------------------------------------------
-// Parse statement
+// Rule:
+// <statement> ::= <block> | <declaration> | <call> | <assignment> | <if-statement> | <while-statement> | <jump-statement> 
+// <jump-statement>  ::= 'return' <expression> ';'
 //-----------------------------------------------------------------------------
 VMNode* VMParser::parseStatement() {
 	Token token = getToken();
 	if (isDataType(token.type)) return parseDeclaration(); else
-	if (token.type == TokenType::IDENTIFIER) return parseAssignment(); else
+	if (token.type == TokenType::OP_BRACES) return parseBlock(); else
+	if (token.type == TokenType::IDENTIFIER) {
+		Token nextToken = getNextToken();
+		if (nextToken.type == TokenType::ASSIGN) return parseAssignment();
+		if (nextToken.type == TokenType::OP_PARENTHESES) {
+			VMNode* callNode = parseCall(); next();
+			if (!isTokenType(TokenType::EOS)) raiseError("';' expected");
+			return callNode;
+		} else {
+			raiseError("Unexpected token, assignment '=' or function call expecated.");
+		}
+	} 
+	else
 	if (token.type == TokenType::IF) return parseIf(); else 
 	if (token.type == TokenType::WHILE) return parseWhile(); else
 	if (token.type == TokenType::RETURN) {
@@ -183,10 +241,10 @@ VMNode* VMParser::parseIf() {
 	checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
 	next();	ifblock->addChild(parseCondition());
 	checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
-	next();	ifblock->addChild(parseBlock());
+	next();	ifblock->addChild(parseStatement());
 	if (getNextToken().type==TokenType::ELSE) {
 		next(); next(); // FIXME why 2 next???
-		ifblock->addChild(parseBlock());
+		ifblock->addChild(parseStatement());
 	}
 	return ifblock;
 }
@@ -200,7 +258,7 @@ VMNode* VMParser::parseWhile() {
 	checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
 	next(); whileBlock->addChild(parseCondition());
 	checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
-	next(); whileBlock->addChild(parseBlock());
+	next(); whileBlock->addChild(parseStatement());
 	return whileBlock;
 }
 
@@ -301,6 +359,7 @@ VMNode* VMParser::parseFactor() {
 		factor = new VMNode(getToken(), VMNodeType::CONSTANT); next(); 
 	} else if (isTokenType(TokenType::IDENTIFIER)) { 
 		factor = new VMNode(getToken(), VMNodeType::SYMBOL); next(); 
+		//if (isTokenType(TokenType::OP_PARENTHESES)); read parameters
 	} 
 	else raiseError("Number or identifier expected");
 

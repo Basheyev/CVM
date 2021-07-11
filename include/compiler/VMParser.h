@@ -35,7 +35,8 @@ namespace vm {
 		VMNode* parseModule();
 		VMNode* parseDeclaration();
 		VMNode* parseFunction();
-		VMNode* parseParameters();
+		VMNode* parseArguments();
+		VMNode* parseCall();
 		VMNode* parseBlock();
 		VMNode* parseStatement();
 		VMNode* parseIf();

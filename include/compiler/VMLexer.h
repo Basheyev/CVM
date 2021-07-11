@@ -15,7 +15,7 @@ using namespace std;
 
 namespace vm {
 
-	constexpr char* BLANKS = "\x20\n\t";
+	constexpr char* BLANKS = "\x20\n\r\t";
 	constexpr char* DELIMETERS = ",;{}[]()=><+-*/&|~^!";
 
 	enum class TokenType {
