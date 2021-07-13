@@ -15,6 +15,7 @@ add_executable (cvm
 	"include/compiler/VMLexer.h" 
 	"include/compiler/VMNode.h"
 	"include/compiler/VMParser.h" 
+	"include/compiler/VMSymbols.h"
 	"include/compiler/VMCodeGenerator.h"
 
 	"src/cvm.cpp" 
@@ -24,7 +25,9 @@ add_executable (cvm
 	"src/compiler/VMLexer.cpp"
 	"src/compiler/VMNode.cpp"
 	"src/compiler/VMParser.cpp"  
-	"src/compiler/VMCodeGenerator.cpp")
+	"src/compiler/VMSymbols.cpp"
+	"src/compiler/VMCodeGenerator.cpp" 
+	)
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.
 target_compile_features(cvm PUBLIC cxx_std_17)

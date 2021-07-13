@@ -222,8 +222,8 @@ int main()
 	//vmTest();
 	//lexerTest();
 	//compilerTest();
-	syntaxTreeTest();
-	//codeGeneratorTest();
+	//syntaxTreeTest();
+	codeGeneratorTest();
 	
 	return 0;
 }

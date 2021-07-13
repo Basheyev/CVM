@@ -38,21 +38,43 @@ void VMCodeGenerator::generateCode(VMImage* img, VMNode* rootNode) {
     cout << endl;
     for (int i = 0; i < rootNode->getChildCount(); i++) {
         VMNode* node = rootNode->getChild(i);
-        if (node->getType() == VMNodeType::FUNCTION) emitFunction(node);
+        if (node->getType() == VMNodeType::FUNCTION) {
+            Token tkn = node->getToken();
+            cout.write(tkn.text, tkn.length);
+            cout << ":" << endl;
+            emitFunction(node);
+        }
     }
 }
-
 
 void VMCodeGenerator::emitFunction(VMNode* node) {
     // Childs: #0 - type, #1 - parameters, #2 - function body
     VMNode* body = node->getChild(2); 
     for (int j = 0; j < body->getChildCount(); j++) {
         VMNode* statement = body->getChild(j);
+        if (statement->getType() == VMNodeType::DATA_TYPE) {
+            emitDeclaration(statement);
+        } else
         if (statement->getType() == VMNodeType::ASSIGNMENT) {
-            cout << endl;
             emitAssignment(statement);
         }
     }
+    cout << endl;
+}
+
+
+void VMCodeGenerator::emitDeclaration(VMNode* node) {
+    Token token;
+    for (int i = 0; i < node->getChildCount(); i++) {
+        token = node->getToken();
+        cout << "iconst 0      // int var" << i;
+        // cout.write(token.text, token.length);
+        cout << ";" << endl;
+    }
+}
+
+void VMCodeGenerator::emitCall(VMNode* node) {
+
 }
 
 
@@ -82,12 +104,20 @@ void VMCodeGenerator::emitExpression(VMNode* node) {
         if (node->getType() == VMNodeType::SYMBOL) cout << "ipush "; else cout << "iconst ";
         cout.write(token.text, token.length);
         cout << endl;
-    } else if (node->getType()== VMNodeType::BINARY_OPERATION && childCount == 2) {
+    } else if (node->getType() == VMNodeType::BINARY_OPERATION && childCount == 2) {
         emitExpression(node->getChild(0));
         emitExpression(node->getChild(1));
         getOpCode(node->getToken());
+    } else if (node->getType() == VMNodeType::CALL) {
+        for (int i = 0; i < node->getChildCount(); i++) {
+            emitExpression(node->getChild(i));
+        }
+        cout << "call ";
+        Token tkn = node->getToken();
+        cout.write(tkn.text, tkn.length);
+        cout << endl;
     } else {
-        cout << "Error" << endl;
+        cout << "Error unknown Node" << endl;
     }
 }
 

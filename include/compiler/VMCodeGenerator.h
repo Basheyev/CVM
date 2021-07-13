@@ -10,17 +10,10 @@
 #include "image/VMImage.h"
 #include "compiler/VMNode.h"
 #include "compiler/VMParser.h"
+#include "compiler/VMSymbols.h"
 
 
 namespace vm {
-
-
-    class VMSymbolTable {
-        char* name;
-        int type;
-        WORD address;
-    };
-
 
     class VMCodeGenerator {
     public:
@@ -31,11 +24,12 @@ namespace vm {
     private:
 
         void emitFunction(VMNode* assignment);
+        void emitDeclaration(VMNode* node);
+        void emitCall(VMNode* node);
         void emitIfElse(VMNode* assignment);
         void emitWhile(VMNode* assignment);
         void emitAssignment(VMNode* assignment);
         void emitExpression(VMNode* expression);
-
 
         WORD getOpCode(Token& token);
 
