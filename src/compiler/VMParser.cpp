@@ -133,7 +133,7 @@ VMNode* VMParser::parseFunction() {
 	VMNode* returnType = new VMNode(dataType, VMNodeType::DATA_TYPE); next();
 	checkToken(TokenType::IDENTIFIER, "Function name expected");
 	VMNode* function = new VMNode(getToken(), VMNodeType::FUNCTION); next();
-	VMNode* parameters = new VMNode(TKN_ARGUMENTS, VMNodeType::DECLARATION);
+	VMNode* parameters = new VMNode(TKN_ARGUMENTS, VMNodeType::ARGUMENTS);
 	while (next()) {
 		if (isTokenType(TokenType::CL_PARENTHESES)) break;
 		if (isTokenType(TokenType::COMMA)) continue;
@@ -244,7 +244,7 @@ VMNode* VMParser::parseIf() {
 	checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
 	next();	ifblock->addChild(parseStatement());
 	if (getNextToken().type==TokenType::ELSE) {
-		next(); next(); // FIXME why 2 next???
+		next(); next();
 		ifblock->addChild(parseStatement());
 	}
 	return ifblock;

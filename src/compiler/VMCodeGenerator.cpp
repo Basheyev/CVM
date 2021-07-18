@@ -25,6 +25,8 @@
 using namespace vm;
 using namespace std;
 
+int blockCounter = 0;
+
 VMCodeGenerator::VMCodeGenerator() {
 
 }
@@ -37,6 +39,7 @@ VMCodeGenerator::~VMCodeGenerator() {
 
 void VMCodeGenerator::generateCode(VMImage* img, VMNode* rootNode) {
     try {
+        rootNode->print();
         emitModule(rootNode);
     }
     catch (VMCodeGeneratorException& e) {
@@ -93,14 +96,13 @@ void VMCodeGenerator::emitBlock(VMNode* body, VMSymbolsTable* symbols) {
     // emit function body
     for (int j = 0; j < body->getChildCount(); j++) {
         VMNode* statement = body->getChild(j);
-        if (statement->getType() == VMNodeType::DATA_TYPE) {
-            emitDeclaration(statement, symbols);
-        }
-        else if (statement->getType() == VMNodeType::ASSIGNMENT) {
-            emitAssignment(statement, symbols);
-        }
-        else if (statement->getType() == VMNodeType::RETURN) {
-            emitReturn(statement, symbols);
+        if (statement->getType() == VMNodeType::DATA_TYPE) emitDeclaration(statement, symbols);
+        else if (statement->getType() == VMNodeType::ASSIGNMENT) emitAssignment(statement, symbols);
+        else if (statement->getType() == VMNodeType::RETURN) emitReturn(statement, symbols);
+        else if (statement->getType() == VMNodeType::IF_STATEMENT) emitIfElse(statement, symbols);
+        else if (statement->getType() == VMNodeType::BLOCK) {
+            cout << "block" << blockCounter++ << ":" << endl;
+            emitBlock(statement, symbols);
         }
         else {
             // todo other statements
@@ -133,7 +135,14 @@ void VMCodeGenerator::emitCall(VMNode* node, VMSymbolsTable* symbols) {
 
 
 void VMCodeGenerator::emitIfElse(VMNode* node, VMSymbolsTable* symbols) {
-
+    VMNode* condition = node->getChild(0);
+    VMNode* thenBlock = node->getChild(1);
+    VMNode* elseBlock = node->getChild(2);
+    emitExpression(condition, symbols);
+    cout << "cmpje  [ addr  ]" << endl;
+    emitBlock(thenBlock, symbols);
+    emitBlock(elseBlock, symbols);
+    // address + length1;
 }
 
 
