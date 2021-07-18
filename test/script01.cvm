@@ -1,13 +1,15 @@
 module generatorTest;
 
+int globalW, globalQ, globalZ;
+
 int sum(int a, int b) {
-	int c;
-	c = a + b;
+	return a + b;
 }
 
 int main() {
-	int a, b, c;
-	a = 3 + sum(5,6);
-	b = 17 + a;
-	return b - 1;
+	int a,b,c;
+	a = 5;
+	b = 6;
+	c = sum(5,6);
+	return c;
 }

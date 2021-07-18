@@ -22,8 +22,6 @@
 *  <term>            ::= <factor> {(*|/) <factor>}
 *  <factor>          ::= ({-|+} <number>) | <identifer> | <call>
 * 
-* todo: unary not, and binary operations
-* 
 ============================================================================*/
 
 #include "compiler/VMParser.h"
@@ -32,6 +30,7 @@
 using namespace vm;
 using namespace std;
 
+constexpr Token TKN_ARGUMENTS = { TokenType::NONE, "ARGUMENTS", 9, 0, 0 };
 constexpr Token TKN_BLOCK = { TokenType::NONE, "BLOCK", 5, 0, 0 };
 constexpr Token TKN_ZERO = { TokenType::CONST_INTEGER, "0", 1, 0, 0 };
 constexpr Token TKN_MINUS = { TokenType::MINUS, "-", 1, 0, 0 };
@@ -134,7 +133,7 @@ VMNode* VMParser::parseFunction() {
 	VMNode* returnType = new VMNode(dataType, VMNodeType::DATA_TYPE); next();
 	checkToken(TokenType::IDENTIFIER, "Function name expected");
 	VMNode* function = new VMNode(getToken(), VMNodeType::FUNCTION); next();
-	VMNode* parameters = new VMNode({ TokenType::NONE, "PARAMETERS", 10, 0,0 }, VMNodeType::DECLARATION);
+	VMNode* parameters = new VMNode(TKN_ARGUMENTS, VMNodeType::DECLARATION);
 	while (next()) {
 		if (isTokenType(TokenType::CL_PARENTHESES)) break;
 		if (isTokenType(TokenType::COMMA)) continue;
