@@ -7,7 +7,7 @@
 ============================================================================*/
 #pragma once
 
-#include "image/VMImage.h"
+#include "runtime/ExecutableImage.h"
 #include "compiler/VMNode.h"
 #include "compiler/VMParser.h"
 #include "compiler/VMSymbolsTable.h"
@@ -24,7 +24,7 @@ namespace vm {
     public:
         VMCodeGenerator();
         ~VMCodeGenerator();
-        void generateCode(VMImage* img, VMNode* rootNode);
+        void generateCode(ExecutableImage* img, VMNode* rootNode);
 
     private:
         VMSymbolsTable symbolsRoot;

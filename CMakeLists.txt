@@ -5,12 +5,12 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("cvm")
 
-include_directories("include" "include/runtime" "include/image" "include/compiler")
+include_directories("include" "include/runtime" "include/compiler")
 
 # Добавьте источник в исполняемый файл этого проекта.
 add_executable (cvm 
-	"include/runtime/VMRuntime.h"  
-	"include/image/VMImage.h" 
+	"include/runtime/VirtualMachine.h"  
+	"include/runtime/ExecutableImage.h" 
 	"include/compiler/VMCompiler.h" 
 	"include/compiler/VMLexer.h" 
 	"include/compiler/VMNode.h"
@@ -19,8 +19,8 @@ add_executable (cvm
 	"include/compiler/VMCodeGenerator.h"
 
 	"src/cvm.cpp" 
-	"src/runtime/VMRuntime.cpp"   
-	"src/image/VMImage.cpp" 
+	"src/runtime/VirtualMachine.cpp"   
+	"src/runtime/ExecutableImage.cpp" 
 	"src/compiler/VMCompiler.cpp" 
 	"src/compiler/VMLexer.cpp"
 	"src/compiler/VMNode.cpp"

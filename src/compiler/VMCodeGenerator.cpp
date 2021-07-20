@@ -35,7 +35,7 @@ VMCodeGenerator::~VMCodeGenerator() {
 }
 
 
-void VMCodeGenerator::generateCode(VMImage* img, VMNode* rootNode) {
+void VMCodeGenerator::generateCode(ExecutableImage* img, VMNode* rootNode) {
     try {
         rootNode->print();
         emitModule(rootNode);

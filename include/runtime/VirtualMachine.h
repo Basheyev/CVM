@@ -2,7 +2,7 @@
 * 
 *  Virtual Machine class header
 * 
-*  Lightweight embeddable 32-bit stack virtual machine
+*  Lightweight 32-bit stack virtual machine
 *  
 * 
 *  (C) Bolat Basheyev 2021
@@ -55,31 +55,28 @@ namespace vm {
 	constexpr WORD OP_ARG       = 0b00000000000000000000000000011110;
 	constexpr WORD OP_DROP      = 0b00000000000000000000000000011111;
 
-	constexpr WORD MAX_MEMORY   = 65536;
 
-	class VMRuntime {
+	class VirtualMachine {
 	public:
-
-		VMRuntime();                                // Constructor
-		~VMRuntime();                               // Desctructor
-		bool loadImage(void* image, size_t size);   // Load executable image
-		void run();                                 // Runs image from address 0
-		WORD readWord(WORD address);                // Read WORD from memory
-		void writeWord(WORD address, WORD value);   // Write WORD to memory 
-		WORD getMaxAddress();                       // Get max address in 32-bit words
-		WORD getIP();                               // Get Instruction Pointer address
-		WORD getSP();                               // Get Stack Pointer address
-
+		VirtualMachine(WORD memorySize = 0xFFFF);             // Allocates VM memory in bytes
+		~VirtualMachine();                                    // Desctructor
+		bool loadImage(void* image, WORD size);               // Load executable image
+		void execute();                                       // Runs image from address 0
+		void printState();                                    // Print current VM state
+		inline WORD getMaxAddress() { return maxAddress; };   // Get max address in WORDS
+		inline WORD* getMemory() { return memory; };          // Returns pointer to VM RAM
+		inline WORD getIP() { return ip; };                   // Get Instruction Pointer address
+		inline WORD getSP() { return sp; };                   // Get Stack Pointer address
+		inline WORD getFP() { return fp; };                   // Get Frame Pointer address
+		inline WORD getLP() { return lp; };                   // Get Locals Pointer address
 	private:
-
-		WORD* memory;                               // Random access memory array
-		WORD  ip;                                   // Instruction pointer
-		WORD  sp;                                   // Stack pointer
-		WORD  fp;                                   // Frame pointer
-		WORD  lp;                                   // Local variables pointer
-	
-		void systemCall(WORD n);                    // System call (interruption)
-		void printState();                          // Print current VM state
+		WORD* memory;                                         // Random access memory array
+		WORD  ip;                                             // Instruction pointer
+		WORD  sp;                                             // Stack pointer
+		WORD  fp;                                             // Frame pointer
+		WORD  lp;                                             // Local variables pointer
+		WORD  maxAddress;                                     // Highest address in words
+		void sysCall(WORD n);                                 // System call
 	};
 
 };

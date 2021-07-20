@@ -10,7 +10,7 @@
 ============================================================================*/
 #pragma once
 
-#include "runtime/VMRuntime.h"
+#include "runtime/VirtualMachine.h"
 #include "compiler/VMLexer.h"
 
 namespace vm {

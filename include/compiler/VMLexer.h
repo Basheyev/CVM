@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "runtime/VMRuntime.h"
+#include "runtime/VirtualMachine.h"
 #include <vector>
 
 using namespace std;

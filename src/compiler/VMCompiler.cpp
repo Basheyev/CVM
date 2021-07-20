@@ -26,7 +26,7 @@ VMCompiler::~VMCompiler() {
 }
 
 
-void VMCompiler::compile(const char* sourceCode, VMImage* destImage) {
+void VMCompiler::compile(const char* sourceCode, ExecutableImage* destImage) {
 	lexer->parseToTokens(sourceCode);
 	currentToken = 0;
 	this->destImage = destImage;

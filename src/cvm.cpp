@@ -5,8 +5,8 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
-#include "runtime/VMRuntime.h"
-#include "image/VMImage.h"
+#include "runtime/VirtualMachine.h"
+#include "runtime/ExecutableImage.h"
 #include "compiler/VMCompiler.h"
 #include "compiler/VMNode.h"
 #include "compiler/VMParser.h"
@@ -19,7 +19,7 @@ using namespace vm;
 //-------------------------------------------------------------------
 // Virtual Machine Test
 //-------------------------------------------------------------------
-void createExecutableImage(VMImage* img, WORD iterations) {
+void createExecutableImage(ExecutableImage* img, WORD iterations) {
 	
 	WORD dataSeg = 64;							// Data segment starts at 64
 	
@@ -39,7 +39,7 @@ void createExecutableImage(VMImage* img, WORD iterations) {
 	img->emit(OP_JG, -11 );                     // if (ToS > 0) jump to [-11]           
 	img->emit(OP_HALT);                         // end of program
 
-	img->setEmitPointer(fn);                    // Function void fn()
+	img->setEmitAddress(fn);                    // Function void fn()
 	img->emit(OP_CONST, myStr);                 // Push constant string address
 	img->emit(OP_SYSCALL, 0x20);                // Call system call 0x20, to print C style string to standard output
 	img->emit(OP_RET);                          // Return
@@ -50,7 +50,7 @@ void createExecutableImage(VMImage* img, WORD iterations) {
 //-------------------------------------------------------------------
 // Virtual Machine Test Paramters and Local variables
 //-------------------------------------------------------------------
-void createExecutableImage2(VMImage* img, WORD iterations) {
+void createExecutableImage2(ExecutableImage* img, WORD iterations) {
 
 	WORD dataSeg = 128;							// Data segment starts at 64
 	WORD str = dataSeg;
@@ -72,7 +72,7 @@ void createExecutableImage2(VMImage* img, WORD iterations) {
 	img->emit(OP_HALT);                         // end of program
 
 	// int sum(a, b)
-	img->setEmitPointer(sum);                   // int sum(a,b)
+	img->setEmitAddress(sum);                   // int sum(a,b)
 	img->emit(OP_ARG, 0);                       // load argment #0 (a)
 	img->emit(OP_ARG, 1);                       // load argment #1 (b)
 	img->emit(OP_ADD);                          // a+b	
@@ -82,16 +82,16 @@ void createExecutableImage2(VMImage* img, WORD iterations) {
 
 
 void vmTest() {
-	VMImage* img = new VMImage();
-	createExecutableImage(img, 5);
-	VMRuntime* vm = new VMRuntime();
+	ExecutableImage* img = new ExecutableImage();
+	createExecutableImage2(img, 15);
+	VirtualMachine* vm = new VirtualMachine();
 	vm->loadImage(img->getImage(), img->getImageSize());
 	img->disassemble();
 	cout << "-----------------------------------------------------" << endl;
 	cout << "Virtual Machine test:" << endl;
 	cout << "-----------------------------------------------------" << endl;
 	auto start = std::chrono::high_resolution_clock::now();
-	vm->run();
+	vm->execute();
 	auto end = std::chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
@@ -124,16 +124,16 @@ void lexerTest() {
 // Compiler Test
 //-------------------------------------------------------------------
 void compilerTest() {
-	VMImage* image = new VMImage();
+	ExecutableImage* image = new ExecutableImage();
 
 
 	VMCompiler* compiler = new VMCompiler();
 	compiler->compile("-3+5*(6+2)*(15-3)/5", image); // =93
 	delete compiler;
 
-	VMRuntime* runtime = new VMRuntime();
+	VirtualMachine* runtime = new VirtualMachine();
 	runtime->loadImage(image->getImage(), image->getImageSize());
-	runtime->run();
+	runtime->execute();
 
 	delete runtime;
 
@@ -191,7 +191,7 @@ void codeGeneratorTest() {
 	VMParser* parser = new VMParser();
 	VMNode* root = parser->parse(sourceCode.c_str());
 	if (root != NULL) {
-		VMImage* image = new VMImage();
+		ExecutableImage* image = new ExecutableImage();
 		VMCodeGenerator* codeGenerator = new VMCodeGenerator();
 		// Print AST
 		//root->print();

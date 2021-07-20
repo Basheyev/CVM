@@ -5,8 +5,8 @@
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
-#include "runtime/VMRuntime.h"
-#include "image/VMImage.h"
+#include "runtime/VirtualMachine.h"
+#include "runtime/ExecutableImage.h"
 #include "compiler/VMLexer.h"
 #include <vector>
 
@@ -18,10 +18,10 @@ namespace vm {
 	public:
 		VMCompiler();
 		~VMCompiler();
-		void compile(const char* sourceCode, VMImage* destImage);
+		void compile(const char* sourceCode, ExecutableImage* destImage);
 
 	private:
-		VMImage* destImage;
+		ExecutableImage* destImage;
 		VMLexer* lexer;
 		size_t currentToken;
 
