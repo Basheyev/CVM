@@ -4,7 +4,6 @@
 *
 *  Lightweight embeddable 32-bit stack virtual machine runtime.
 *
-*
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
@@ -18,13 +17,15 @@ using namespace std;
 using namespace vm;
 
 
+
 VMRuntime::VMRuntime() {
+	memory = new WORD[MAX_MEMORY];
 	memset(memory, 0, MAX_MEMORY);
 }
 
 
 VMRuntime::~VMRuntime() {
-
+	delete[] memory;
 }
 
 
@@ -48,7 +49,7 @@ void VMRuntime::run() {
 
 	while (1) {
 
-		printState();
+	//	printState();
 		
 		opcode = memory[ip++];
 		
@@ -133,40 +134,34 @@ void VMRuntime::run() {
 			memory[--sp] = a >> b;
 			break;
 		//------------------------------------------------------------------------
-		// FLOW CONTROL OPERATIONS
+		// FLOW CONTROL OPERATIONS (Relative jumps depending on top of the stack)
 		//------------------------------------------------------------------------
 		case OP_JMP:
-			ip = memory[ip];
+			ip += memory[ip];
 			break;
-		case OP_CMPJE:
-			b = memory[sp++];
+		case OP_JE:
 			a = memory[sp++];
-			if (a == b) ip = memory[ip]; else ip++;
+			if (a == 0) ip += memory[ip]; else ip++;
 			break;
-		case OP_CMPJNE:
-			b = memory[sp++];
+		case OP_JNE:
 			a = memory[sp++];
-			if (a != b) ip = memory[ip]; else ip++;
+			if (a != 0) ip += memory[ip]; else ip++;
 			break;
-		case OP_CMPJG:
-			b = memory[sp++];
+		case OP_JG:
 			a = memory[sp++];
-			if (a > b) ip = memory[ip]; else ip++;
+			if (a > 0) ip += memory[ip]; else ip++;
 			break;
-		case OP_CMPJGE:
-			a = memory[sp++];
+		case OP_JGE:
 			b = memory[sp++];
-			if (a >= b) ip = memory[ip]; else ip++;
+			if (a >= 0) ip += memory[ip]; else ip++;
 			break;
-		case OP_CMPJL:
-			b = memory[sp++];
+		case OP_JL:
 			a = memory[sp++];
-			if (a < b) ip = memory[ip]; else ip++;
+			if (a < 0) ip += memory[ip]; else ip++;
 			break;
-		case OP_CMPJLE:
-			b = memory[sp++];
+		case OP_JLE:
 			a = memory[sp++];
-			if (a <= b) ip = memory[ip]; else ip++;
+			if (a <= 0) ip += memory[ip]; else ip++;
 			break;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
@@ -199,7 +194,7 @@ void VMRuntime::run() {
 			printState();
 		    return;
 		//------------------------------------------------------------------------
-		// LOCAL VARIABLES AND CALL ARGUMENTS OPERATIONS (x86 like convention)
+		// LOCAL VARIABLES AND CALL ARGUMENTS OPERATIONS
 		//------------------------------------------------------------------------
 		case OP_LOAD:
 			a = memory[ip++];         // read local variable index

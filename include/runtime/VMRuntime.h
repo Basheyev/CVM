@@ -38,12 +38,12 @@ namespace vm {
 	constexpr WORD OP_SHR       = 0b00000000000000000000000000001111;
 
 	constexpr WORD OP_JMP       = 0b00000000000000000000000000010001;
-	constexpr WORD OP_CMPJE     = 0b00000000000000000000000000010010;
-	constexpr WORD OP_CMPJNE    = 0b00000000000000000000000000010011;
-	constexpr WORD OP_CMPJG     = 0b00000000000000000000000000010100;
-	constexpr WORD OP_CMPJGE    = 0b00000000000000000000000000010101;
-	constexpr WORD OP_CMPJL     = 0b00000000000000000000000000010110;
-	constexpr WORD OP_CMPJLE    = 0b00000000000000000000000000010111;
+	constexpr WORD OP_JE        = 0b00000000000000000000000000010010;
+	constexpr WORD OP_JNE       = 0b00000000000000000000000000010011;
+	constexpr WORD OP_JG        = 0b00000000000000000000000000010100;
+	constexpr WORD OP_JGE       = 0b00000000000000000000000000010101;
+	constexpr WORD OP_JL        = 0b00000000000000000000000000010110;
+	constexpr WORD OP_JLE       = 0b00000000000000000000000000010111;
 
 	constexpr WORD OP_DUP       = 0b00000000000000000000000000011000;
 	constexpr WORD OP_CALL      = 0b00000000000000000000000000011001;
@@ -57,28 +57,22 @@ namespace vm {
 
 	constexpr WORD MAX_MEMORY   = 65536;
 
-
-
 	class VMRuntime {
 	public:
 
 		VMRuntime();                                // Constructor
 		~VMRuntime();                               // Desctructor
-
 		bool loadImage(void* image, size_t size);   // Load executable image
-
 		void run();                                 // Runs image from address 0
-
 		WORD readWord(WORD address);                // Read WORD from memory
 		void writeWord(WORD address, WORD value);   // Write WORD to memory 
-
 		WORD getMaxAddress();                       // Get max address in 32-bit words
 		WORD getIP();                               // Get Instruction Pointer address
 		WORD getSP();                               // Get Stack Pointer address
 
 	private:
 
-		WORD  memory[MAX_MEMORY];                   // Random access memory array
+		WORD* memory;                               // Random access memory array
 		WORD  ip;                                   // Instruction pointer
 		WORD  sp;                                   // Stack pointer
 		WORD  fp;                                   // Frame pointer

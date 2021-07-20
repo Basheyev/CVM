@@ -32,22 +32,14 @@ void createExecutableImage(VMImage* img, WORD iterations) {
 
 	WORD addr = img->emit(OP_PUSH, iVar);       // stack <- [iVar] (operand 1)
 	img->emit(OP_DEC);                          // stack[top]--  (operand 1 decrement)
-	img->emit(OP_CALL, fn, 0);                  // Call function fn()     
 	img->emit(OP_DUP);                          // duplicate stack top (operand 1 duplicate)
 	img->emit(OP_POP, iVar);                    // stack -> [iVar] (pop operand 1 duplicate to iVar)
-	img->emit(OP_CONST, 0);                     // push const 0 (operand 2)
-	img->emit(OP_CMPJG, addr);                  // if (operand1 > operand2) jump to addr           
+	img->emit(OP_CALL, fn, 0);                  // Call function void fn()
+	img->emit(OP_DROP);                         // Drop return value if void
+	img->emit(OP_JG, -11 );                     // if (ToS > 0) jump to [-11]           
 	img->emit(OP_HALT);                         // end of program
 
-	img->setEmitPointer(fn);                    // Function fn()
-	img->emit(OP_CONST, 10);                    // allocate and initialize variable #0 (a)
-	img->emit(OP_CONST, 5);                     // allocate and initialize variable #1 (b)
-	img->emit(OP_CONST, 15);                    // allocate and initialize variable #2 (c)
-	img->emit(OP_LOAD, 0);                      // load a
-	img->emit(OP_LOAD, 1);                      // load b
-	img->emit(OP_DIV);                          // a / b
-	img->emit(OP_STORE, 2);                     // store c (c = a / b)
-
+	img->setEmitPointer(fn);                    // Function void fn()
 	img->emit(OP_CONST, myStr);                 // Push constant string address
 	img->emit(OP_SYSCALL, 0x20);                // Call system call 0x20, to print C style string to standard output
 	img->emit(OP_RET);                          // Return
@@ -76,18 +68,14 @@ void createExecutableImage2(VMImage* img, WORD iterations) {
 	img->emit(OP_CONST, 10);                    // push const
 	img->emit(OP_CALL, sum, 2);                 // Call function fn(a, b)  
 	img->emit(OP_SYSCALL, 0x21);                // print TOS int
-	img->emit(OP_CONST, 0);                     // push const 0 (operand 2)
-	img->emit(OP_CMPJG, addr);                  // if (operand1 > operand2) jump to addr   
+	img->emit(OP_JG, -15);                      // if (ToS > 0) jump to -15   
 	img->emit(OP_HALT);                         // end of program
 
 	// int sum(a, b)
 	img->setEmitPointer(sum);                   // int sum(a,b)
-	img->emit(OP_CONST, 10);                    // int c = 10
 	img->emit(OP_ARG, 0);                       // load argment #0 (a)
 	img->emit(OP_ARG, 1);                       // load argment #1 (b)
 	img->emit(OP_ADD);                          // a+b	
-	img->emit(OP_LOAD, 0);                      // load local variable (c)
-	img->emit(OP_SUB);                          // (a+b) - c
 	img->emit(OP_RET);                          // Return TOS
 
 }
@@ -95,7 +83,7 @@ void createExecutableImage2(VMImage* img, WORD iterations) {
 
 void vmTest() {
 	VMImage* img = new VMImage();
-	createExecutableImage2(img, 5);
+	createExecutableImage(img, 5);
 	VMRuntime* vm = new VMRuntime();
 	vm->loadImage(img->getImage(), img->getImageSize());
 	img->disassemble();
@@ -140,7 +128,7 @@ void compilerTest() {
 
 
 	VMCompiler* compiler = new VMCompiler();
-	compiler->compile("-3+5*(6+2)*(15-3)/5", image);
+	compiler->compile("-3+5*(6+2)*(15-3)/5", image); // =93
 	delete compiler;
 
 	VMRuntime* runtime = new VMRuntime();
@@ -219,11 +207,11 @@ void codeGeneratorTest() {
 
 int main()
 {
-	//vmTest();
+	vmTest();
 	//lexerTest();
 	//compilerTest();
 	//syntaxTreeTest();
-	codeGeneratorTest();
+	//codeGeneratorTest();
 	
 	return 0;
 }

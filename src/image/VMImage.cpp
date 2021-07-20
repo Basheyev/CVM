@@ -175,49 +175,49 @@ WORD VMImage::printMnemomic(WORD* memory, WORD virtualAddress) {
 		//------------------------------------------------------------------------
 		// STACK OPERATIONS
 		//------------------------------------------------------------------------
-	case OP_CONST:	cout << "iconst  " << memory[ip++]; break;
-	case OP_PUSH:   cout << "ipush   [" << memory[ip++] << "]"; break;
-	case OP_POP:    cout << "ipop    [" << memory[ip++] << "]"; break;
-	case OP_DUP:    cout << "idup    " ; break;
+		case OP_CONST:	cout << "iconst  " << memory[ip++]; break;
+		case OP_PUSH:   cout << "ipush   [" << memory[ip++] << "]"; break;
+		case OP_POP:    cout << "ipop    [" << memory[ip++] << "]"; break;
+		case OP_DUP:    cout << "idup    " ; break;
 		//------------------------------------------------------------------------
 		// ARITHMETIC OPERATIONS
 		//------------------------------------------------------------------------
-	case OP_INC: cout << "iinc    "; break;
-	case OP_DEC: cout << "idec    "; break;
-	case OP_ADD: cout << "iadd    "; break;
-	case OP_SUB: cout << "isub    "; break;
-	case OP_MUL: cout << "imul    "; break;
-	case OP_DIV: cout << "idiv    "; break;
+		case OP_INC: cout << "iinc    "; break;
+		case OP_DEC: cout << "idec    "; break;
+		case OP_ADD: cout << "iadd    "; break;
+		case OP_SUB: cout << "isub    "; break;
+		case OP_MUL: cout << "imul    "; break;
+		case OP_DIV: cout << "idiv    "; break;
 		//------------------------------------------------------------------------
 		// BITWISE OPERATIONS
 		//------------------------------------------------------------------------
-	case OP_AND: cout << "iand    "; break;
-	case OP_OR:  cout << "ior     "; break;
-	case OP_XOR: cout << "ixor    "; break;
-	case OP_NOT: cout << "inot    "; break;
-	case OP_SHL: cout << "ishl    "; break;
-	case OP_SHR: cout << "ishr    "; break;
+		case OP_AND: cout << "iand    "; break;
+		case OP_OR:  cout << "ior     "; break;
+		case OP_XOR: cout << "ixor    "; break;
+		case OP_NOT: cout << "inot    "; break;
+		case OP_SHL: cout << "ishl    "; break;
+		case OP_SHR: cout << "ishr    "; break;
 		//------------------------------------------------------------------------
 		// FLOW CONTROL OPERATIONS
 		//------------------------------------------------------------------------
-	case OP_JMP:   cout << "jmp     [" << memory[ip++] << "]"; break;
-	case OP_CMPJE: cout << "icmpje  [" << memory[ip++] << "]"; break;
-	case OP_CMPJNE:cout << "icmpjne [" << memory[ip++] << "]"; break;
-	case OP_CMPJG: cout << "icmpjg  [" << memory[ip++] << "]"; break;
-	case OP_CMPJGE:cout << "icmpjge [" << memory[ip++] << "]"; break;
-	case OP_CMPJL: cout << "icmpjl  [" << memory[ip++] << "]"; break;
-	case OP_CMPJLE:cout << "icmpjle [" << memory[ip++] << "]"; break;
+		case OP_JMP: cout << "jmp     [" << memory[ip++] << "]"; break;
+		case OP_JE:  cout << "je      [" << memory[ip++] << "]"; break;
+		case OP_JNE: cout << "jne     [" << memory[ip++] << "]"; break;
+		case OP_JG:  cout << "jg      [" << memory[ip++] << "]"; break;
+		case OP_JGE: cout << "jge     [" << memory[ip++] << "]"; break;
+		case OP_JL:  cout << "jl      [" << memory[ip++] << "]"; break;
+		case OP_JLE: cout << "jle     [" << memory[ip++] << "]"; break;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
 		//------------------------------------------------------------------------
-	case OP_CALL:    cout << "call    [" << memory[ip++] << "], " << memory[ip++]; break;
-	case OP_RET:     cout << "ret     "; break;
-	case OP_SYSCALL: cout << "syscall 0x" << setbase(16) << memory[ip++] << setbase(10); break;
-	case OP_HALT: 	 if (previousOp != opcode) cout << "---- halt ----"; break;
-	case OP_LOAD:	cout << "iload   #" << memory[ip++]; break;
-	case OP_STORE:	cout << "istore  #" << memory[ip++]; break;
-	case OP_ARG:	cout << "iarg    #" << memory[ip++]; break;
-	case OP_DROP:	cout << "idrop   "; break;
+		case OP_CALL:    cout << "call    [" << memory[ip++] << "], " << memory[ip++]; break;
+		case OP_RET:     cout << "ret     "; break;
+		case OP_SYSCALL: cout << "syscall 0x" << setbase(16) << memory[ip++] << setbase(10); break;
+		case OP_HALT: 	 if (previousOp != opcode) cout << "---- halt ----"; break;
+		case OP_LOAD:	cout << "iload   #" << memory[ip++]; break;
+		case OP_STORE:	cout << "istore  #" << memory[ip++]; break;
+		case OP_ARG:	cout << "iarg    #" << memory[ip++]; break;
+		case OP_DROP:	cout << "idrop   "; break;
 	default:
 		cout << "0x" << setbase(16) << opcode << setbase(10);
 	}

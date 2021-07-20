@@ -6,8 +6,6 @@
 *
 ============================================================================*/
 
-// TODO change push/pop to indexes
-
 // Questions
 // 1. How to replace symbols by addresses?
 // 2. How to layout code in image?
