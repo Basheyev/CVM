@@ -5,17 +5,20 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
+/*
 #include "runtime/VirtualMachine.h"
 #include "runtime/ExecutableImage.h"
 #include "compiler/VMCompiler.h"
 #include "compiler/VMNode.h"
 #include "compiler/VMParser.h"
 #include "compiler/VMCodeGenerator.h"
+*/
+#include "compiler/SourceParser.h"
 
 using namespace std;
 using namespace vm;
 
-
+/*
 //-------------------------------------------------------------------
 // Virtual Machine Test
 //-------------------------------------------------------------------
@@ -36,7 +39,7 @@ void createExecutableImage(ExecutableImage* img, WORD iterations) {
 	img->emit(OP_POP, iVar);                    // stack -> [iVar] (pop operand 1 duplicate to iVar)
 	img->emit(OP_CALL, fn, 0);                  // Call function void fn()
 	img->emit(OP_DROP);                         // Drop return value if void
-	img->emit(OP_JG, -11 );                     // if (ToS > 0) jump to [-11]           
+	img->emit(OP_IFGR, -11 );                     // if (ToS > 0) jump to [-11]           
 	img->emit(OP_HALT);                         // end of program
 
 	img->setEmitAddress(fn);                    // Function void fn()
@@ -68,7 +71,7 @@ void createExecutableImage2(ExecutableImage* img, WORD iterations) {
 	img->emit(OP_CONST, 10);                    // push const
 	img->emit(OP_CALL, sum, 2);                 // Call function fn(a, b)  
 	img->emit(OP_SYSCALL, 0x21);                // print TOS int
-	img->emit(OP_JG, -15);                      // if (ToS > 0) jump to -15   
+	img->emit(OP_IFGR, -15);                      // if (ToS > 0) jump to -15   
 	img->emit(OP_HALT);                         // end of program
 
 	// int sum(a, b)
@@ -139,7 +142,7 @@ void compilerTest() {
 
 	delete image;
 }
-
+*/
 
 //-------------------------------------------------------------------
 // Node Test
@@ -159,7 +162,7 @@ bool loadFile(std::string& data, const char* filename)
 	}
 	return false;
 }
-
+/*
 
 void syntaxTreeTest() {
 	string sourceCode;
@@ -203,15 +206,52 @@ void codeGeneratorTest() {
 	delete parser;
 
 }
+*/
+
+void sourceParserTest() {
+	string sourceCode;
+	cout << filesystem::current_path() << endl;
+
+	if (!loadFile(sourceCode, "c:/Learning/cvm/cvm/test/script02.cvm")) {
+		cout << "File not open." << endl;
+		return;
+	}
+	
+	auto start = std::chrono::high_resolution_clock::now();
+
+	SourceParser* parser = new SourceParser(sourceCode.c_str());
+
+	auto end = std::chrono::high_resolution_clock::now();
+	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
+	/*
+	int count = (int) parser->getTokenCount();
+	for (int i = 0; i < count; i++) {
+		Token token = parser->getToken(i);
+		cout << "'";
+		cout.write(token.text, token.length);
+		cout << "'\t";
+		cout << TOKEN_TYPE_MNEMONIC[(int)token.type] << "\t";
+		cout << "Row=" << token.row << " ";
+		cout << "Col=" << token.col;
+		cout << endl;
+	}*/
+
+	parser->getSyntaxTree()->print();
+
+	delete parser;
+}
 
 
 int main()
 {
-	vmTest();
+	//vmTest();
 	//lexerTest();
 	//compilerTest();
 	//syntaxTreeTest();
 	//codeGeneratorTest();
 	
+	sourceParserTest();
+
 	return 0;
 }

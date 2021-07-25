@@ -34,9 +34,9 @@ VirtualMachine::~VirtualMachine() {
 //-----------------------------------------------------------------------------
 // Loads executable image to virtual machine RAM
 //-----------------------------------------------------------------------------
-bool VirtualMachine::loadImage(void* image, WORD size) {
-	if (size > maxAddress * sizeof(WORD)) return false;
-	memcpy(memory, image, size);
+bool VirtualMachine::loadImage(void* image, WORD bytesCount) {
+	if (bytesCount > maxAddress * sizeof(WORD)) return false;
+	memcpy(memory, image, bytesCount);
 	return true;
 }
 
@@ -138,27 +138,27 @@ void VirtualMachine::execute() {
 		case OP_JMP:
 			ip += memory[ip];
 			goto fetch;
-		case OP_JE:
+		case OP_IFEQ:
 			a = memory[sp++];
 			if (a == 0) ip += memory[ip]; else ip++;
 			goto fetch;
-		case OP_JNE:
+		case OP_IFNE:
 			a = memory[sp++];
 			if (a != 0) ip += memory[ip]; else ip++;
 			goto fetch;
-		case OP_JG:
+		case OP_IFGR:
 			a = memory[sp++];
 			if (a > 0) ip += memory[ip]; else ip++;
 			goto fetch;
-		case OP_JGE:
+		case OP_IFGE:
 			b = memory[sp++];
 			if (a >= 0) ip += memory[ip]; else ip++;
 			goto fetch;
-		case OP_JL:
+		case OP_IFLS:
 			a = memory[sp++];
 			if (a < 0) ip += memory[ip]; else ip++;
 			goto fetch;
-		case OP_JLE:
+		case OP_IFLE:
 			a = memory[sp++];
 			if (a <= 0) ip += memory[ip]; else ip++;
 			goto fetch;

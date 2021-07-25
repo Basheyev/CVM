@@ -27,7 +27,7 @@ add_executable (cvm
 	"src/compiler/VMParser.cpp"  
 	"src/compiler/VMSymbolsTable.cpp"
 	"src/compiler/VMCodeGenerator.cpp" 
-	)
+	 "include/compiler/SourceParser.h" "src/compiler/SourceParser.cpp" "src/compiler/SyntaxTreeNode.cpp")
 
 # TODO: Добавьте тесты и целевые объекты, если это необходимо.
 target_compile_features(cvm PUBLIC cxx_std_17)

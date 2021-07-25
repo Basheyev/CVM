@@ -199,12 +199,12 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		// FLOW CONTROL OPERATIONS
 		//------------------------------------------------------------------------
 		case OP_JMP:    cout << "jmp     [" << image[ip++] << "]"; break;
-		case OP_JE:     cout << "je      [" << image[ip++] << "]"; break;
-		case OP_JNE:    cout << "jne     [" << image[ip++] << "]"; break;
-		case OP_JG:     cout << "jg      [" << image[ip++] << "]"; break;
-		case OP_JGE:    cout << "jge     [" << image[ip++] << "]"; break;
-		case OP_JL:     cout << "jl      [" << image[ip++] << "]"; break;
-		case OP_JLE:    cout << "jle     [" << image[ip++] << "]"; break;
+		case OP_IFEQ:   cout << "ifeq    [" << image[ip++] << "]"; break;
+		case OP_IFNE:   cout << "ifne    [" << image[ip++] << "]"; break;
+		case OP_IFGR:   cout << "ifgr    [" << image[ip++] << "]"; break;
+		case OP_IFGE:   cout << "ifge    [" << image[ip++] << "]"; break;
+		case OP_IFLS:   cout << "ifls    [" << image[ip++] << "]"; break;
+		case OP_IFLE:   cout << "ifle    [" << image[ip++] << "]"; break;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
 		//------------------------------------------------------------------------

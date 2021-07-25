@@ -38,12 +38,12 @@ namespace vm {
 	constexpr WORD OP_SHR       = 0b00000000000000000000000000001111;
 
 	constexpr WORD OP_JMP       = 0b00000000000000000000000000010001;
-	constexpr WORD OP_JE        = 0b00000000000000000000000000010010;
-	constexpr WORD OP_JNE       = 0b00000000000000000000000000010011;
-	constexpr WORD OP_JG        = 0b00000000000000000000000000010100;
-	constexpr WORD OP_JGE       = 0b00000000000000000000000000010101;
-	constexpr WORD OP_JL        = 0b00000000000000000000000000010110;
-	constexpr WORD OP_JLE       = 0b00000000000000000000000000010111;
+	constexpr WORD OP_IFEQ      = 0b00000000000000000000000000010010;
+	constexpr WORD OP_IFNE      = 0b00000000000000000000000000010011;
+	constexpr WORD OP_IFGR      = 0b00000000000000000000000000010100;
+	constexpr WORD OP_IFGE      = 0b00000000000000000000000000010101;
+	constexpr WORD OP_IFLS      = 0b00000000000000000000000000010110;
+	constexpr WORD OP_IFLE      = 0b00000000000000000000000000010111;
 
 	constexpr WORD OP_DUP       = 0b00000000000000000000000000011000;
 	constexpr WORD OP_CALL      = 0b00000000000000000000000000011001;
@@ -60,7 +60,7 @@ namespace vm {
 	public:
 		VirtualMachine(WORD memorySize = 0xFFFF);             // Allocates VM memory in bytes
 		~VirtualMachine();                                    // Desctructor
-		bool loadImage(void* image, WORD size);               // Load executable image
+		bool loadImage(void* image, WORD bytesCount);         // Load executable image
 		void execute();                                       // Runs image from address 0
 		void printState();                                    // Print current VM state
 		inline WORD getMaxAddress() { return maxAddress; };   // Get max address in WORDS
