@@ -77,20 +77,43 @@ namespace vm {
     // Symbol Table
     //------------------------------------------------------------------------
     enum class SymbolType {
-        CONSTANT, VARIABLE, FUNCTION
+        CONSTANT, FUNCTION, ARGUMENT, VARIABLE
+    };
+
+    constexpr char* const  SYMBOL_TYPE_MNEMONIC[] = {
+        "CONSTANT", "FUNCTION", "ARGUMENT", "VARIABLE"
     };
 
     class Symbol {
     public:
-        Token token;
+        string name;
         SymbolType type;
+        int localIndex;
+        int address;
     };
 
     class SymbolTable {
     public:
+        SymbolTable();
+        ~SymbolTable();
+
+        bool addChild(SymbolTable* child);
+        bool removeChild(SymbolTable* child);
+        SymbolTable* getChildAt(size_t index);
+        size_t getChildCount();
+
+        void clearSymbols();
+        size_t getSymbolsCount();
+        bool addSymbol(Token& token, SymbolType type);
+        Symbol* lookupSymbol(Token& token);
+        Symbol* getSymbolAt(size_t index);
+        void printSymbols();
+    
+    private:
         vector<Symbol> symbols;
         vector<SymbolTable*> childs;
         SymbolTable* parent;
+        size_t getNextIndex(SymbolType type);
     };
 
     //------------------------------------------------------------------------
@@ -98,12 +121,12 @@ namespace vm {
     //------------------------------------------------------------------------
     enum class TreeNodeType {
         UNKNOWN = 0, MODULE, CONSTANT, TYPE, SYMBOL, BINARY_OP, CALL,
-        FUNCTION, BLOCK, IF_ELSE, WHILE, RETURN
+        FUNCTION, BLOCK, ASSIGNMENT, IF_ELSE, WHILE, RETURN
     };
 
     constexpr char* const TREE_NODE_TYPE_MNEMONIC[] = {
         "UNKNOWN", "MODULE", "CONSTANT", "TYPE", "SYMBOL", "BINARY_OP", "CALL",
-        "FUNCTION", "BLOCK", "IF_ELSE", "WHILE", "RETURN"
+        "FUNCTION", "BLOCK", "ASSIGNMENT", "IF_ELSE", "WHILE", "RETURN"
     };
 
     class TreeNode {
@@ -159,15 +182,15 @@ namespace vm {
         bool isDelimeter(char value) { return strchr(DELIMETERS, value) != NULL; };
         bool pushToken(char* text, int length, int row, int col);
         TokenType getTokenType(char* text, int length);
-        TokenType identifyNumber(char* text, int length);
-        TokenType identifyKeyword(char* text, int length);
-        TokenType identifyString(char* text, int length);
+        TokenType validateNumber(char* text, int length);
+        TokenType validateIdentifier(char* text, int length);
+        TokenType validateString(char* text, int length);
 
         void buildSyntaxTree();
         TreeNode* parseModule();
         TreeNode* parseDeclaration();
         TreeNode* parseFunction();
-        TreeNode* parseArguments();
+        TreeNode* parseArgument();
         TreeNode* parseCall();
         TreeNode* parseBlock();
         TreeNode* parseStatement();

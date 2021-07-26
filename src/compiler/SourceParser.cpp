@@ -9,18 +9,18 @@
 *  <declaration>     ::= <type> <identifier> {','<identifier>}* ';'
 *  <function>        ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
 *  <argument>        ::= <type> <identifier>
-*  <statement>       ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>)
+*  <statement>       ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
 *  <block>           ::= '{' {<statement>}* '}'
 *  <call>            ::= <identifier> '(' {<expression>} {, expression}* ')'
-*  <if-else>         ::= 'if' '(' <expression> ')' <statement> { 'else' <statement> }
-*  <while>           ::= 'while' '(' <expression> ')' <statement>
+*  <if-else>         ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
+*  <while>           ::= 'while' '(' <condition> ')' <statement>
 *  <jump>            ::= 'return' <expression> ';'
 *  <assign>          ::= <identifier> = <expression> ';'
-*  <condition>       ::= <expression> {( == | != | > | >= | < | <= | && | '||' | !) <expression>}
+*  <condition>       ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
 *  <expression>      ::= <term> {(+|-) <term>}
 *  <term>            ::= <bitwise> {(*|/) <bitwise>}
 *  <bitwise>         ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
-*  <factor>          ::= ({-|+} <number>) | <identifer> | <call>
+*  <factor>          ::= ({!|-|+} <number>) | <identifer> | <call>
 *
 *
 *  (C) Bolat Basheyev 2021
@@ -110,6 +110,9 @@ void SourceParser::parseToTokens(const char* sourceCode) {
 }
 
 
+//-----------------------------------------------------------------------------
+// Pushes parsed token to tokens vector
+//-----------------------------------------------------------------------------
 bool SourceParser::pushToken(char* text, int length, int row, int col) {
     TokenType type = getTokenType(text, length);
     if (type != TokenType::UNKNOWN) {
@@ -120,6 +123,9 @@ bool SourceParser::pushToken(char* text, int length, int row, int col) {
 }
 
 
+//-----------------------------------------------------------------------------
+// Identifies token type by comparing to keywords, operators and rules
+//-----------------------------------------------------------------------------
 TokenType SourceParser::getTokenType(char* text, int length) {
     if (text == NULL || length < 1) return TokenType::UNKNOWN;
     for (int i = 0; i < TOKEN_TYPE_COUNT; i++) {
@@ -132,28 +138,37 @@ TokenType SourceParser::getTokenType(char* text, int length) {
         }
     }
     char firstChar = text[0];
-    if (isdigit(firstChar)) return identifyNumber(text, length);
-    if (isalpha(firstChar)) return identifyKeyword(text, length);
-    if (firstChar == '"') return identifyString(text, length);
+    if (isdigit(firstChar)) return validateNumber(text, length);
+    if (isalpha(firstChar)) return validateIdentifier(text, length);
+    if (firstChar == '"') return validateString(text, length);
     return TokenType::UNKNOWN;
 }
 
 
-TokenType SourceParser::identifyNumber(char* text, int length) {
+//-----------------------------------------------------------------------------
+// Validates constant integer number
+//-----------------------------------------------------------------------------
+TokenType SourceParser::validateNumber(char* text, int length) {
     for (size_t i = 1; i < length; i++)
         if (!isdigit(text[i])) return TokenType::UNKNOWN;
     return TokenType::CONST_INTEGER;
 }
 
 
-TokenType SourceParser::identifyKeyword(char* text, int length) {
+//-----------------------------------------------------------------------------
+// Validates identifier
+//-----------------------------------------------------------------------------
+TokenType SourceParser::validateIdentifier(char* text, int length) {
     for (size_t i = 1; i < length; i++)
         if (!isalnum(text[i])) return TokenType::UNKNOWN;
     return TokenType::IDENTIFIER;
 }
 
 
-TokenType SourceParser::identifyString(char* text, int length) {
+//-----------------------------------------------------------------------------
+// Validates constant string
+//-----------------------------------------------------------------------------
+TokenType SourceParser::validateString(char* text, int length) {
     if (length < 2) return TokenType::UNKNOWN;
     if (text[length - 1] != '"') return TokenType::UNKNOWN;
     return TokenType::CONST_STRING;
@@ -161,14 +176,17 @@ TokenType SourceParser::identifyString(char* text, int length) {
 
 
 //---------------------------------------------------------------------------
-// Abstract syntax tree builder
+// Builds abstract syntax tree
 //---------------------------------------------------------------------------
-
 void SourceParser::buildSyntaxTree() {
     currentToken = 0;
     root = parseModule();
 }
 
+
+//---------------------------------------------------------------------------
+// <module> ::= { <declaration> | <function> }*
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseModule() { 
     TreeNode* program = new TreeNode(EMPTY_TOKEN, TreeNodeType::MODULE);
     Token functionCheck;
@@ -184,6 +202,9 @@ TreeNode* SourceParser::parseModule() {
 }
 
 
+//---------------------------------------------------------------------------
+// <declaration> ::= <type> <identifier> {','<identifier>}* ';'
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseDeclaration() {
     Token dataType = getToken();
     if (!isDataType(dataType.type)) raiseError("Data type expected");
@@ -199,7 +220,9 @@ TreeNode* SourceParser::parseDeclaration() {
 }
 
 
-
+//---------------------------------------------------------------------------
+// <function> ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseFunction() { 
     Token dataType = getToken();
     if (!isDataType(dataType.type)) raiseError("Function return data type expected");
@@ -210,7 +233,7 @@ TreeNode* SourceParser::parseFunction() {
     while (next()) {
         if (isTokenType(TokenType::CL_PARENTHESES)) break;
         if (isTokenType(TokenType::COMMA)) continue;
-        arguments->addChild(parseArguments());
+        arguments->addChild(parseArgument());
     }
     next();
     TreeNode* functionBody = parseBlock();
@@ -221,19 +244,68 @@ TreeNode* SourceParser::parseFunction() {
 }
 
 
-TreeNode* SourceParser::parseArguments() { 
+//---------------------------------------------------------------------------
+// <argument> :: = <type> <identifier>
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseArgument() { 
     Token dataType = getToken();
-    if (!isDataType(dataType.type)) raiseError("Funcation parameter data type expected");
-    TreeNode* argumentsDeclaration = new TreeNode(dataType, TreeNodeType::TYPE); next();
-    checkToken(TokenType::IDENTIFIER, "Function parameter name expected");
+    if (!isDataType(dataType.type)) raiseError("Funcation argument type expected");
+    TreeNode* argument = new TreeNode(dataType, TreeNodeType::TYPE); next();
+    checkToken(TokenType::IDENTIFIER, "Function argument name expected");
     TreeNode* variableName = new TreeNode(getToken(), TreeNodeType::SYMBOL);
-    argumentsDeclaration->addChild(variableName);
-    return argumentsDeclaration;
+    argument->addChild(variableName);
+    return argument;
 }
 
 
 
-TreeNode* SourceParser::parseCall() { 
+//---------------------------------------------------------------------------
+// <statement> ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseStatement() { 
+    Token token = getToken();
+    if (isDataType(token.type)) return parseDeclaration(); else
+    if (token.type == TokenType::OP_BRACES) return parseBlock(); else
+    if (token.type == TokenType::IDENTIFIER) {
+        Token nextToken = getNextToken();
+        if (nextToken.type == TokenType::ASSIGN) return parseAssignment();
+        if (nextToken.type == TokenType::OP_PARENTHESES) {
+            TreeNode* callNode = parseCall(); next();
+            if (!isTokenType(TokenType::EOS)) raiseError("';' expected");
+            return callNode;
+        } else raiseError("Unexpected token, assignment '=' or function call expecated.");
+    } else
+    if (token.type == TokenType::IF) return parseIfElse(); else
+    if (token.type == TokenType::WHILE) return parseWhile(); else
+    if (token.type == TokenType::RETURN) {
+        TreeNode* returnStmt = new TreeNode(token, TreeNodeType::RETURN); next();
+        TreeNode* expr = parseExpression();
+        returnStmt->addChild(expr);
+        return returnStmt;
+    } else raiseError("Unexpected token, statement expected");
+    return NULL;
+}
+
+
+
+//---------------------------------------------------------------------------
+// <block> ::= '{' {<statement>}* '}'
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseBlock() {
+    TreeNode* block = new TreeNode(TKN_BLOCK, TreeNodeType::BLOCK);
+    while (next()) {
+        if (isTokenType(TokenType::CL_BRACES)) break;
+        if (isTokenType(TokenType::EOS)) continue;
+        block->addChild(parseStatement());
+    }
+    return block;
+}
+
+
+//---------------------------------------------------------------------------
+// <call> ::= <identifier> '(' {<expression>} {, expression}* ')'
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseCall() {
     Token identifier = getToken();
     TreeNode* callNode = new TreeNode(identifier, TreeNodeType::CALL); next();
     if (!isTokenType(TokenType::OP_PARENTHESES)) raiseError("Opening parentheses '(' expected.");
@@ -249,48 +321,9 @@ TreeNode* SourceParser::parseCall() {
 }
 
 
-TreeNode* SourceParser::parseBlock() {
-    TreeNode* block = new TreeNode(TKN_BLOCK, TreeNodeType::BLOCK);
-    while (next()) {
-        if (isTokenType(TokenType::CL_BRACES)) break;
-        if (isTokenType(TokenType::EOS)) continue;
-        block->addChild(parseStatement());
-    }
-    return block;
-}
-
-TreeNode* SourceParser::parseStatement() { 
-    Token token = getToken();
-    if (isDataType(token.type)) return parseDeclaration(); else
-    if (token.type == TokenType::OP_BRACES) return parseBlock(); else
-    if (token.type == TokenType::IDENTIFIER) {
-        Token nextToken = getNextToken();
-        if (nextToken.type == TokenType::ASSIGN) return parseAssignment();
-        if (nextToken.type == TokenType::OP_PARENTHESES) {
-            TreeNode* callNode = parseCall(); next();
-            if (!isTokenType(TokenType::EOS)) raiseError("';' expected");
-            return callNode;
-        }
-        else {
-            raiseError("Unexpected token, assignment '=' or function call expecated.");
-        }
-    } else
-    if (token.type == TokenType::IF) return parseIfElse(); else
-    if (token.type == TokenType::WHILE) return parseWhile(); else
-    if (token.type == TokenType::RETURN) {
-        TreeNode* returnStmt = new TreeNode(token, TreeNodeType::RETURN); next();
-        TreeNode* expr = parseExpression();
-        returnStmt->addChild(expr);
-        return returnStmt;
-    } else {
-        raiseError("Unexpected token, statement expected");
-    }
-    return NULL;
-
-
-}
-
-
+//---------------------------------------------------------------------------
+// <if-else> ::= 'if' '(' <expression> ')' <statement> { 'else' <statement> }
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseIfElse() {
     TreeNode* ifblock = new TreeNode(getToken(), TreeNodeType::IF_ELSE); next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
@@ -305,6 +338,9 @@ TreeNode* SourceParser::parseIfElse() {
 }
 
 
+//---------------------------------------------------------------------------
+// <while> :: = 'while' '(' < expression > ')' < statement >
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseWhile() { 
     TreeNode* whileBlock = new TreeNode(getToken(), TreeNodeType::WHILE); next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
@@ -315,11 +351,13 @@ TreeNode* SourceParser::parseWhile() {
 }
 
 
-
+//---------------------------------------------------------------------------
+// <assign> ::= <identifier> = <expression> ';'
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseAssignment() { 
     Token identifier = getToken(); next();
     checkToken(TokenType::ASSIGN, "Assignment operator '=' expected");
-    TreeNode* op = new TreeNode(getToken(), TreeNodeType::BINARY_OP); next();
+    TreeNode* op = new TreeNode(getToken(), TreeNodeType::ASSIGNMENT); next();
     TreeNode* a = new TreeNode(identifier, TreeNodeType::SYMBOL);
     TreeNode* b = parseCondition();
     op->addChild(a);
@@ -328,6 +366,9 @@ TreeNode* SourceParser::parseAssignment() {
 }
 
 
+//---------------------------------------------------------------------------
+// <condition> ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseCondition() { 
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
     operand1 = parseExpression();
@@ -346,7 +387,9 @@ TreeNode* SourceParser::parseCondition() {
 }
 
 
-
+//---------------------------------------------------------------------------
+// <expression> ::= <term> {(+|-) <term>}
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseExpression() {
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
     operand1 = parseTerm();
@@ -364,7 +407,10 @@ TreeNode* SourceParser::parseExpression() {
 }
 
 
-TreeNode* SourceParser::parseTerm() { return NULL; 
+//---------------------------------------------------------------------------
+// <term>  ::= <bitwise> {(*|/) <bitwise>}
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseTerm() { 
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
     operand1 = parseBitwise();
     Token token = getToken();
@@ -380,10 +426,19 @@ TreeNode* SourceParser::parseTerm() { return NULL;
     return op == NULL ? operand1 : op;
 }
 
+
+//---------------------------------------------------------------------------
+// <bitwise>  ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseBitwise() { 
+    // todo bitwise operators
     return parseFactor(); 
 }
 
+
+//---------------------------------------------------------------------------
+// <factor> ::= ({!|-|+} <number>) | <identifer> | <call>
+//---------------------------------------------------------------------------
 TreeNode* SourceParser::parseFactor() { 
     TreeNode* factor = NULL;
     bool unaryMinus = false;
@@ -392,7 +447,7 @@ TreeNode* SourceParser::parseFactor() {
     else
         if (isTokenType(TokenType::PLUS)) { unaryMinus = false; next(); }
         else {
-            // add unary Not operator	
+            // TODO add unary Not operator	
         }
 
     if (isTokenType(TokenType::OP_PARENTHESES)) {

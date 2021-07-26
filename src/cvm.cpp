@@ -212,7 +212,7 @@ void sourceParserTest() {
 	string sourceCode;
 	cout << filesystem::current_path() << endl;
 
-	if (!loadFile(sourceCode, "c:/Learning/cvm/cvm/test/script02.cvm")) {
+	if (!loadFile(sourceCode, "../../../test/script02.cvm")) {
 		cout << "File not open." << endl;
 		return;
 	}
@@ -224,7 +224,7 @@ void sourceParserTest() {
 	auto end = std::chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
-	/*
+	
 	int count = (int) parser->getTokenCount();
 	for (int i = 0; i < count; i++) {
 		Token token = parser->getToken(i);
@@ -235,9 +235,11 @@ void sourceParserTest() {
 		cout << "Row=" << token.row << " ";
 		cout << "Col=" << token.col;
 		cout << endl;
-	}*/
+	}
 
-	parser->getSyntaxTree()->print();
+
+	TreeNode *root = parser->getSyntaxTree();
+	if (root != NULL) root->print();
 
 	delete parser;
 }

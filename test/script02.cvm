@@ -18,7 +18,7 @@ int main() {
 	if (a != b && b == c) {
 		c = sum(5,6);
 	}
-	return factorial(5) + " asdasdasd sdf";
+	return factorial(5) + 3;
 }
 
 

@@ -15,7 +15,7 @@
 // 3. I have 3 enumeration sets: OP_CODES, TokenType, NodeType (which one to use add Node to get better code generation?)
 
 
-#include "compiler/VMCodeGenerator.h"
+#include "compiler/CodeGenerator.h"
 
 #include <iostream>
 
@@ -25,22 +25,22 @@ using namespace std;
 
 int blockCounter = 0;
 
-VMCodeGenerator::VMCodeGenerator() {
+CodeGenerator::CodeGenerator() {
 
 }
 
-VMCodeGenerator::~VMCodeGenerator() {
+CodeGenerator::~CodeGenerator() {
 
 
 }
 
 
-void VMCodeGenerator::generateCode(ExecutableImage* img, VMNode* rootNode) {
+void CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
     try {
         rootNode->print();
         emitModule(rootNode);
     }
-    catch (VMCodeGeneratorException& e) {
+    catch (CodeGeneratorException& e) {
         cout << "CODE GENERATION ERROR: " << endl;
         cout.write(e.token.text, e.token.length);
         cout << endl << e.error << endl;
@@ -49,17 +49,17 @@ void VMCodeGenerator::generateCode(ExecutableImage* img, VMNode* rootNode) {
 }
 
 
-void VMCodeGenerator::emitModule(VMNode* rootNode) {
+void CodeGenerator::emitModule(TreeNode* rootNode) {
     for (int i = 0; i < rootNode->getChildCount(); i++) {
-        VMNode* node = rootNode->getChild(i);
-        if (node->getType() == VMNodeType::FUNCTION) {
+        TreeNode* node = rootNode->getChild(i);
+        if (node->getType() == TreeNodeType::FUNCTION) {
             Token tkn = node->getToken();
             cout << endl;
             cout.write(tkn.text, tkn.length);
             cout << ":" << endl;
             emitFunction(node);
         }
-        else if (node->getType() == VMNodeType::DATA_TYPE) {
+        else if (node->getType() == TreeNodeType::TYPE) {
             emitDeclaration(node, &symbolsRoot);
         }
     }
@@ -67,38 +67,38 @@ void VMCodeGenerator::emitModule(VMNode* rootNode) {
 
 
 // Node Childs: #0 - type, #1 - arguments, #2 - function body
-void VMCodeGenerator::emitFunction(VMNode* node) {
+void CodeGenerator::emitFunction(TreeNode* node) {
     
     // add function to symbol table
     Token funcToken = node->getToken();
     if (!symbolsRoot.addSymbol(funcToken, SymbolType::FUNCTION)) raiseError(funcToken, "Function already defined");
    
     // create function symbol table
-    VMSymbolsTable* symbols = new VMSymbolsTable();
+    SymbolTable* symbols = new SymbolTable();
     symbolsRoot.addChild(symbols);
 
     // add arguments to symbol table
-    VMNode* arguments = node->getChild(1);
+    TreeNode* arguments = node->getChild(1);
     Token token;
     for (int i = 0; i < arguments->getChildCount(); i++) {
         token = arguments->getChild(i)->getChild(0)->getToken();
         if (!symbols->addSymbol(token, SymbolType::ARGUMENT)) raiseError(token, "Argument already defined");
     }
 
-    VMNode* body = node->getChild(2);
+    TreeNode* body = node->getChild(2);
     emitBlock(body, symbols);
 }
 
 
-void VMCodeGenerator::emitBlock(VMNode* body, VMSymbolsTable* symbols) {
+void CodeGenerator::emitBlock(TreeNode* body, SymbolTable* symbols) {
     // emit function body
     for (int j = 0; j < body->getChildCount(); j++) {
-        VMNode* statement = body->getChild(j);
-        if (statement->getType() == VMNodeType::DATA_TYPE) emitDeclaration(statement, symbols);
-        else if (statement->getType() == VMNodeType::ASSIGNMENT) emitAssignment(statement, symbols);
-        else if (statement->getType() == VMNodeType::RETURN) emitReturn(statement, symbols);
-        else if (statement->getType() == VMNodeType::IF_STATEMENT) emitIfElse(statement, symbols);
-        else if (statement->getType() == VMNodeType::BLOCK) {
+        TreeNode* statement = body->getChild(j);
+        if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(statement, symbols);
+        else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(statement, symbols);
+        else if (statement->getType() == TreeNodeType::RETURN) emitReturn(statement, symbols);
+        else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(statement, symbols);
+        else if (statement->getType() == TreeNodeType::BLOCK) {
             cout << "block" << blockCounter++ << ":" << endl;
             emitBlock(statement, symbols);
         }
@@ -110,7 +110,7 @@ void VMCodeGenerator::emitBlock(VMNode* body, VMSymbolsTable* symbols) {
 }
 
 
-void VMCodeGenerator::emitDeclaration(VMNode* node, VMSymbolsTable* symbols) {
+void CodeGenerator::emitDeclaration(TreeNode* node, SymbolTable* symbols) {
     Token token;
     for (int i = 0; i < node->getChildCount(); i++) {
         token = node->getChild(i)->getToken();
@@ -121,7 +121,7 @@ void VMCodeGenerator::emitDeclaration(VMNode* node, VMSymbolsTable* symbols) {
     }
 }
 
-void VMCodeGenerator::emitCall(VMNode* node, VMSymbolsTable* symbols) {
+void CodeGenerator::emitCall(TreeNode* node, SymbolTable* symbols) {
     for (int i = 0; i < node->getChildCount(); i++) {
         emitExpression(node->getChild(i), symbols);
     }
@@ -132,10 +132,10 @@ void VMCodeGenerator::emitCall(VMNode* node, VMSymbolsTable* symbols) {
 }
 
 
-void VMCodeGenerator::emitIfElse(VMNode* node, VMSymbolsTable* symbols) {
-    VMNode* condition = node->getChild(0);
-    VMNode* thenBlock = node->getChild(1);
-    VMNode* elseBlock = node->getChild(2);
+void CodeGenerator::emitIfElse(TreeNode* node, SymbolTable* symbols) {
+    TreeNode* condition = node->getChild(0);
+    TreeNode* thenBlock = node->getChild(1);
+    TreeNode* elseBlock = node->getChild(2);
     emitExpression(condition, symbols);
     cout << "cmpje  [ addr  ]" << endl;
     emitBlock(thenBlock, symbols);
@@ -144,21 +144,21 @@ void VMCodeGenerator::emitIfElse(VMNode* node, VMSymbolsTable* symbols) {
 }
 
 
-void VMCodeGenerator::emitWhile(VMNode* node, VMSymbolsTable* symbols) {
+void CodeGenerator::emitWhile(TreeNode* node, SymbolTable* symbols) {
 
 }
 
-void VMCodeGenerator::emitReturn(VMNode* node, VMSymbolsTable* symbols) {
+void CodeGenerator::emitReturn(TreeNode* node, SymbolTable* symbols) {
     emitExpression(node->getChild(0), symbols);
     cout << "ret  ";
     cout << endl;
 }
 
 
-void VMCodeGenerator::emitAssignment(VMNode* assignment, VMSymbolsTable* symbols) {
+void CodeGenerator::emitAssignment(TreeNode* assignment, SymbolTable* symbols) {
     Token asgn = assignment->getChild(0)->getToken();
     emitExpression(assignment->getChild(1), symbols);
-    VMSymbolEntry* entry = symbols->lookupSymbol(asgn);
+    Symbol* entry = symbols->lookupSymbol(asgn);
     if (entry != NULL) {
         cout << "istore ";
         cout << entry->localIndex;
@@ -170,15 +170,15 @@ void VMCodeGenerator::emitAssignment(VMNode* assignment, VMSymbolsTable* symbols
 }
 
 
-void VMCodeGenerator::emitExpression(VMNode* node, VMSymbolsTable* symbols) {
+void CodeGenerator::emitExpression(TreeNode* node, SymbolTable* symbols) {
     size_t childCount = node->getChildCount();
     if (childCount == 0) {
         emitSymbol(node, symbols);
-    } else if (node->getType() == VMNodeType::BINARY_OPERATION && childCount == 2) {
+    } else if (node->getType() == TreeNodeType::BINARY_OP && childCount == 2) {
         emitExpression(node->getChild(0), symbols);
         emitExpression(node->getChild(1), symbols);
         getOpCode(node->getToken());
-    } else if (node->getType() == VMNodeType::CALL) {
+    } else if (node->getType() == TreeNodeType::CALL) {
         emitCall(node, symbols);
     } else {
         cout << "Error unknown Node" << endl;
@@ -186,10 +186,10 @@ void VMCodeGenerator::emitExpression(VMNode* node, VMSymbolsTable* symbols) {
 }
 
 
-void VMCodeGenerator::emitSymbol(VMNode* node, VMSymbolsTable* symbols) {
+void CodeGenerator::emitSymbol(TreeNode* node, SymbolTable* symbols) {
     Token token = node->getToken();
-    if (node->getType() == VMNodeType::SYMBOL) {
-        VMSymbolEntry* entry = symbols->lookupSymbol(token);
+    if (node->getType() == TreeNodeType::SYMBOL) {
+        Symbol* entry = symbols->lookupSymbol(token);
         if (entry != NULL) {
             if (entry->type == SymbolType::ARGUMENT) {
                 cout << "iarg  ";
@@ -209,7 +209,7 @@ void VMCodeGenerator::emitSymbol(VMNode* node, VMSymbolsTable* symbols) {
 }
 
 
-WORD VMCodeGenerator::getOpCode(Token& token) {
+WORD CodeGenerator::getOpCode(Token& token) {
     switch (token.type) {
     case TokenType::PLUS: cout << "iadd" << endl; break;
     case TokenType::MINUS: cout << "isub" << endl; break;
