@@ -94,6 +94,7 @@ namespace vm {
 
     class SymbolTable {
     public:
+        // TODO add addresses & labels
         SymbolTable(string name = "GLOBAL");
         ~SymbolTable();
 
@@ -132,7 +133,7 @@ namespace vm {
 
     class TreeNode {
     public:
-        TreeNode(Token token, TreeNodeType type);
+        TreeNode(Token token, TreeNodeType type, SymbolTable* scope);
         ~TreeNode();
         TreeNode* addChild(TreeNode* node);
         bool removeChild(TreeNode* node);
@@ -144,8 +145,11 @@ namespace vm {
         size_t getChildCount();
         size_t getDepth();
         void print();
+        inline void setSymbolTable(SymbolTable* scope) { symbols = scope; }
+        inline SymbolTable* getSymbolTable() { return symbols; }
     private:
         Token token;
+        SymbolTable* symbols = NULL;
         vector<TreeNode*> childs;
         TreeNode* parent;
         TreeNodeType type;

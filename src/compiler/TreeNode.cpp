@@ -14,10 +14,11 @@ using namespace vm;
 using namespace std;
 
 
-TreeNode::TreeNode(Token token, TreeNodeType type) {
+TreeNode::TreeNode(Token token, TreeNodeType type, SymbolTable* scope) {
 	this->parent = NULL;
 	this->token = token;
 	this->type = type;
+	this->symbols = scope;
 }
 
 
@@ -99,5 +100,6 @@ void TreeNode::print(int tab) {
 	cout << "'";
 	cout.write(token.text, token.length);
 	cout << "'" << "(" << TREE_NODE_TYPE_MNEMONIC[(unsigned int)type] << ")" << endl;
+	//if (symbols != NULL) symbols->printSymbols();
 	for (auto& node : childs) node->print(tab + 1);
 }

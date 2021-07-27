@@ -124,13 +124,12 @@ void SymbolTable::printSymbols() {
     cout << "------------------ " << name << " ------------------" << endl;
     for (int i = 0; i < count; i++) {
         entry = symbols.at(i);
-        cout << i << "\t" << entry.name << "\t";
+        cout << entry.name << "\t";
         cout << SYMBOL_TYPE_MNEMONIC[(int)entry.type];
-        cout << "\t";
-        cout << "index=" << entry.localIndex;
+        cout << " #" << entry.localIndex;
         cout << endl;
     }
     for (int i = 0; i < childs.size(); i++) {
-        childs.at(i)->printSymbols();
+       childs.at(i)->printSymbols();
     }
 }

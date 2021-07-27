@@ -236,12 +236,12 @@ void sourceParserTest() {
 		cout << "Col=" << token.col;
 		cout << endl;
 	}
-	
+	*/
 
 	TreeNode *root = parser->getSyntaxTree();
 	if (root != NULL) {
 		root->print();
-	}*/
+	}
 
 	parser->getSymbolTable().printSymbols();
 

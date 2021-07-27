@@ -1,7 +1,10 @@
+
+
 int sum(int var1, int var2) {
 	int var3;
 	return var1 + var2;
 }
+
 
 int fact(int n) {
    int m; 
@@ -19,9 +22,8 @@ int main() {
 	b = 6;
 	c = 6;
 	if (a != b && b == c) {
+		int x;
 		c = sum(5,6);
 	}
 	return fact(5) + z;
 }
-
-
