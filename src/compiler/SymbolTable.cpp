@@ -1,4 +1,10 @@
-
+/*============================================================================
+*
+*  Virtual Machine Compiler Symbol Table implementation
+*
+*  (C) Bolat Basheyev 2021
+*
+============================================================================*/
 #include "compiler/SourceParser.h"
 
 #include <iostream>
@@ -7,8 +13,9 @@ using namespace vm;
 using namespace std;
 
 
-SymbolTable::SymbolTable() {
+SymbolTable::SymbolTable(string name) {
     parent = NULL;
+    this->name = name;
 }
 
 
@@ -25,16 +32,20 @@ SymbolTable::~SymbolTable() {
 
 bool SymbolTable::addChild(SymbolTable* child) {
     if (child == NULL) return false;
+    child->parent = this;
     childs.push_back(child);
     return true;
 }
 
 
-bool SymbolTable::removeChild(SymbolTable* child) {
-  
-    // TODO
-    
-    return false;
+void SymbolTable::removeChild(SymbolTable* child) {
+    for (auto entry = begin(childs); entry != end(childs); ++entry) {
+        if (*entry == child) {
+            childs.erase(entry);
+            delete child;
+            return;
+        }
+    }
 }
 
 
@@ -78,6 +89,7 @@ Symbol* SymbolTable::lookupSymbol(Token& token) {
     Symbol entry;
     size_t count = getSymbolsCount();
     size_t length;
+    // Search symbol in current scope
     for (int i = 0; i < count; i++) {
         entry = symbols.at(i);
         if (entry.name.size() == token.length) {
@@ -85,6 +97,7 @@ Symbol* SymbolTable::lookupSymbol(Token& token) {
             if (strncmp(entry.name.c_str(), token.text, length)==0) return &symbols.at(i);
         }
     }
+    // Search symbol in parent scope
     if (parent != NULL) {
         Symbol* entry = parent->lookupSymbol(token);
         if (entry != NULL) return entry;
@@ -108,7 +121,7 @@ size_t SymbolTable::getNextIndex(SymbolType type) {
 void SymbolTable::printSymbols() {
     Symbol entry;
     size_t count = getSymbolsCount();
-    cout << "------------------ SYMBOLS TABLE ------------------" << endl;
+    cout << "------------------ " << name << " ------------------" << endl;
     for (int i = 0; i < count; i++) {
         entry = symbols.at(i);
         cout << i << "\t" << entry.name << "\t";

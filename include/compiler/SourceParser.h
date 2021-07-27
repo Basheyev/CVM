@@ -94,11 +94,11 @@ namespace vm {
 
     class SymbolTable {
     public:
-        SymbolTable();
+        SymbolTable(string name = "GLOBAL");
         ~SymbolTable();
 
         bool addChild(SymbolTable* child);
-        bool removeChild(SymbolTable* child);
+        void removeChild(SymbolTable* child);
         SymbolTable* getChildAt(size_t index);
         size_t getChildCount();
 
@@ -110,6 +110,7 @@ namespace vm {
         void printSymbols();
     
     private:
+        string name;
         vector<Symbol> symbols;
         vector<SymbolTable*> childs;
         SymbolTable* parent;
@@ -169,12 +170,12 @@ namespace vm {
         ~SourceParser();
         inline size_t getTokenCount() { return tokens.size(); }
         Token& getToken(size_t index) { return tokens[index]; }
-        SymbolTable& getSymbolTable() { return symbols; }
+        SymbolTable& getSymbolTable() { return rootSymbolTable; }
         TreeNode* getSyntaxTree() { return root; }
     private:
         vector<Token> tokens;
         TreeNode* root = NULL;
-        SymbolTable symbols;
+        SymbolTable rootSymbolTable;
         size_t currentToken = 0;
 
         void parseToTokens(const char* sourceCode);
@@ -187,21 +188,21 @@ namespace vm {
         TokenType validateString(char* text, int length);
 
         void buildSyntaxTree();
-        TreeNode* parseModule();
-        TreeNode* parseDeclaration();
-        TreeNode* parseFunction();
-        TreeNode* parseArgument();
-        TreeNode* parseCall();
-        TreeNode* parseBlock();
-        TreeNode* parseStatement();
-        TreeNode* parseIfElse();
-        TreeNode* parseWhile();
-        TreeNode* parseAssignment();
-        TreeNode* parseCondition();
-        TreeNode* parseExpression();
-        TreeNode* parseTerm();
-        TreeNode* parseBitwise();
-        TreeNode* parseFactor();
+        TreeNode* parseModule(SymbolTable* scope);
+        TreeNode* parseDeclaration(SymbolTable* scope);
+        TreeNode* parseFunction(SymbolTable* scope);
+        TreeNode* parseArgument(SymbolTable* scope);
+        TreeNode* parseBlock(SymbolTable* scope, bool isFunction);
+        TreeNode* parseStatement(SymbolTable* scope);
+        TreeNode* parseCall(SymbolTable* scope);
+        TreeNode* parseIfElse(SymbolTable* scope);
+        TreeNode* parseWhile(SymbolTable* scope);
+        TreeNode* parseAssignment(SymbolTable* scope);
+        TreeNode* parseCondition(SymbolTable* scope);
+        TreeNode* parseExpression(SymbolTable* scope);
+        TreeNode* parseTerm(SymbolTable* scope);
+        TreeNode* parseBitwise(SymbolTable* scope);
+        TreeNode* parseFactor(SymbolTable* scope);
 
         inline bool next() { currentToken++; return currentToken < getTokenCount(); }
         inline Token getToken() { return getToken(currentToken); }

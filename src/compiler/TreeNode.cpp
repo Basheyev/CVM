@@ -1,3 +1,11 @@
+/*============================================================================
+*
+*  Virtual Machine Compiler Abstract Syntax Tree Node implementation
+*
+*  (C) Bolat Basheyev 2021
+*
+============================================================================*/
+
 #include "compiler/SourceParser.h"
 
 #include <iostream>

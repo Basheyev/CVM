@@ -180,22 +180,22 @@ TokenType SourceParser::validateString(char* text, int length) {
 //---------------------------------------------------------------------------
 void SourceParser::buildSyntaxTree() {
     currentToken = 0;
-    root = parseModule();
+    root = parseModule(&rootSymbolTable);
 }
 
 
 //---------------------------------------------------------------------------
 // <module> ::= { <declaration> | <function> }*
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseModule() { 
+TreeNode* SourceParser::parseModule(SymbolTable* scope) {
     TreeNode* program = new TreeNode(EMPTY_TOKEN, TreeNodeType::MODULE);
     Token functionCheck;
     do {
         functionCheck = getToken(currentToken + 2);
         if (functionCheck.type == TokenType::OP_PARENTHESES) {
-            program->addChild(parseFunction());
+            program->addChild(parseFunction(scope));
         } else {
-            program->addChild(parseDeclaration());
+            program->addChild(parseDeclaration(scope));
         }
     } while (next());
     return program; 
@@ -205,7 +205,7 @@ TreeNode* SourceParser::parseModule() {
 //---------------------------------------------------------------------------
 // <declaration> ::= <type> <identifier> {','<identifier>}* ';'
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseDeclaration() {
+TreeNode* SourceParser::parseDeclaration(SymbolTable* scope) {
     Token dataType = getToken();
     if (!isDataType(dataType.type)) raiseError("Data type expected");
     TreeNode* variableDeclaration = new TreeNode(dataType, TreeNodeType::TYPE);
@@ -214,6 +214,9 @@ TreeNode* SourceParser::parseDeclaration() {
         if (isTokenType(TokenType::EOS)) break;
         checkToken(TokenType::IDENTIFIER, "Variable name expected");
         TreeNode* variableName = new TreeNode(getToken(), TreeNodeType::SYMBOL);
+        if (!scope->addSymbol(variableName->getToken(), SymbolType::VARIABLE)) {
+            raiseError("Variable already defined.");
+        }
         variableDeclaration->addChild(variableName);
     }
     return variableDeclaration;
@@ -223,20 +226,30 @@ TreeNode* SourceParser::parseDeclaration() {
 //---------------------------------------------------------------------------
 // <function> ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseFunction() { 
+TreeNode* SourceParser::parseFunction(SymbolTable* scope) {
     Token dataType = getToken();
     if (!isDataType(dataType.type)) raiseError("Function return data type expected");
     TreeNode* returnType = new TreeNode(dataType, TreeNodeType::TYPE); next();
     checkToken(TokenType::IDENTIFIER, "Function name expected");
-    TreeNode* function = new TreeNode(getToken(), TreeNodeType::FUNCTION); next();
+    TreeNode* function = new TreeNode(getToken(), TreeNodeType::FUNCTION); 
+    if (!scope->addSymbol(function->getToken(), SymbolType::FUNCTION)) {
+        raiseError("Function already defined.");
+    } else next();
+
+    string functionName;
+    functionName.append(function->getToken().text, function->getToken().length);
+    SymbolTable* blockSymbols = new SymbolTable(functionName);
+    scope->addChild(blockSymbols);
     TreeNode* arguments = new TreeNode(EMPTY_TOKEN, TreeNodeType::SYMBOL);
     while (next()) {
         if (isTokenType(TokenType::CL_PARENTHESES)) break;
         if (isTokenType(TokenType::COMMA)) continue;
-        arguments->addChild(parseArgument());
+        arguments->addChild(parseArgument(blockSymbols));
     }
     next();
-    TreeNode* functionBody = parseBlock();
+
+    // TODO block symbol table doubles
+    TreeNode* functionBody = parseBlock(blockSymbols, true);
     function->addChild(returnType);
     function->addChild(arguments);
     function->addChild(functionBody);
@@ -247,14 +260,41 @@ TreeNode* SourceParser::parseFunction() {
 //---------------------------------------------------------------------------
 // <argument> :: = <type> <identifier>
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseArgument() { 
+TreeNode* SourceParser::parseArgument(SymbolTable* scope) {
     Token dataType = getToken();
-    if (!isDataType(dataType.type)) raiseError("Funcation argument type expected");
+    if (!isDataType(dataType.type)) raiseError("Function argument type expected");
     TreeNode* argument = new TreeNode(dataType, TreeNodeType::TYPE); next();
     checkToken(TokenType::IDENTIFIER, "Function argument name expected");
     TreeNode* variableName = new TreeNode(getToken(), TreeNodeType::SYMBOL);
+    if (!scope->addSymbol(variableName->getToken(), SymbolType::ARGUMENT)) {
+        raiseError("Argument already defined.");
+    }
     argument->addChild(variableName);
     return argument;
+}
+
+
+
+
+//---------------------------------------------------------------------------
+// <block> ::= '{' {<statement>}* '}'
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction) {
+    TreeNode* block = new TreeNode(TKN_BLOCK, TreeNodeType::BLOCK);
+    SymbolTable* blockSymbols;
+    if (isFunction) blockSymbols = scope; else {
+        blockSymbols = new SymbolTable("BLOCK");
+        scope->addChild(blockSymbols);
+    }
+    while (next()) {
+        if (isTokenType(TokenType::CL_BRACES)) break;
+        if (isTokenType(TokenType::EOS)) continue;
+        block->addChild(parseStatement(blockSymbols));
+    }
+    if (blockSymbols->getSymbolsCount() == 0) {
+        scope->removeChild(blockSymbols);
+    }
+    return block;
 }
 
 
@@ -262,24 +302,24 @@ TreeNode* SourceParser::parseArgument() {
 //---------------------------------------------------------------------------
 // <statement> ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseStatement() { 
+TreeNode* SourceParser::parseStatement(SymbolTable* scope) {
     Token token = getToken();
-    if (isDataType(token.type)) return parseDeclaration(); else
-    if (token.type == TokenType::OP_BRACES) return parseBlock(); else
+    if (isDataType(token.type)) return parseDeclaration(scope); else
+    if (token.type == TokenType::OP_BRACES) return parseBlock(scope, false); else
     if (token.type == TokenType::IDENTIFIER) {
         Token nextToken = getNextToken();
-        if (nextToken.type == TokenType::ASSIGN) return parseAssignment();
+        if (nextToken.type == TokenType::ASSIGN) return parseAssignment(scope);
         if (nextToken.type == TokenType::OP_PARENTHESES) {
-            TreeNode* callNode = parseCall(); next();
+            TreeNode* callNode = parseCall(scope); next();
             if (!isTokenType(TokenType::EOS)) raiseError("';' expected");
             return callNode;
         } else raiseError("Unexpected token, assignment '=' or function call expecated.");
     } else
-    if (token.type == TokenType::IF) return parseIfElse(); else
-    if (token.type == TokenType::WHILE) return parseWhile(); else
+    if (token.type == TokenType::IF) return parseIfElse(scope); else
+    if (token.type == TokenType::WHILE) return parseWhile(scope); else
     if (token.type == TokenType::RETURN) {
         TreeNode* returnStmt = new TreeNode(token, TreeNodeType::RETURN); next();
-        TreeNode* expr = parseExpression();
+        TreeNode* expr = parseExpression(scope);
         returnStmt->addChild(expr);
         return returnStmt;
     } else raiseError("Unexpected token, statement expected");
@@ -287,33 +327,21 @@ TreeNode* SourceParser::parseStatement() {
 }
 
 
-
-//---------------------------------------------------------------------------
-// <block> ::= '{' {<statement>}* '}'
-//---------------------------------------------------------------------------
-TreeNode* SourceParser::parseBlock() {
-    TreeNode* block = new TreeNode(TKN_BLOCK, TreeNodeType::BLOCK);
-    while (next()) {
-        if (isTokenType(TokenType::CL_BRACES)) break;
-        if (isTokenType(TokenType::EOS)) continue;
-        block->addChild(parseStatement());
-    }
-    return block;
-}
-
-
 //---------------------------------------------------------------------------
 // <call> ::= <identifier> '(' {<expression>} {, expression}* ')'
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseCall() {
+TreeNode* SourceParser::parseCall(SymbolTable* scope) {
     Token identifier = getToken();
+    if (scope->lookupSymbol(identifier) == NULL) {
+        raiseError("Symbol not defined.");
+    }
     TreeNode* callNode = new TreeNode(identifier, TreeNodeType::CALL); next();
     if (!isTokenType(TokenType::OP_PARENTHESES)) raiseError("Opening parentheses '(' expected.");
     while (next()) {
         Token tkn = getToken();
         if (isTokenType(TokenType::CL_PARENTHESES)) break;
         if (isTokenType(TokenType::COMMA)) continue;
-        TreeNode* param = parseExpression();
+        TreeNode* param = parseExpression(scope);
         callNode->addChild(param);
         if (isTokenType(TokenType::CL_PARENTHESES)) break;
     }
@@ -324,15 +352,15 @@ TreeNode* SourceParser::parseCall() {
 //---------------------------------------------------------------------------
 // <if-else> ::= 'if' '(' <expression> ')' <statement> { 'else' <statement> }
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseIfElse() {
+TreeNode* SourceParser::parseIfElse(SymbolTable* scope) {
     TreeNode* ifblock = new TreeNode(getToken(), TreeNodeType::IF_ELSE); next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
-    next();	ifblock->addChild(parseCondition());
+    next();	ifblock->addChild(parseCondition(scope));
     checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
-    next();	ifblock->addChild(parseStatement());
+    next();	ifblock->addChild(parseStatement(scope));
     if (getNextToken().type == TokenType::ELSE) {
         next(); next();
-        ifblock->addChild(parseStatement());
+        ifblock->addChild(parseStatement(scope));
     }
     return ifblock;
 }
@@ -341,12 +369,13 @@ TreeNode* SourceParser::parseIfElse() {
 //---------------------------------------------------------------------------
 // <while> :: = 'while' '(' < expression > ')' < statement >
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseWhile() { 
+TreeNode* SourceParser::parseWhile(SymbolTable* scope) {
     TreeNode* whileBlock = new TreeNode(getToken(), TreeNodeType::WHILE); next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
-    next(); whileBlock->addChild(parseCondition());
+    next(); whileBlock->addChild(parseCondition(scope));
     checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
-    next(); whileBlock->addChild(parseStatement());
+    next(); 
+    whileBlock->addChild(parseStatement(scope));
     return whileBlock;
 }
 
@@ -354,12 +383,12 @@ TreeNode* SourceParser::parseWhile() {
 //---------------------------------------------------------------------------
 // <assign> ::= <identifier> = <expression> ';'
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseAssignment() { 
+TreeNode* SourceParser::parseAssignment(SymbolTable* scope) {
     Token identifier = getToken(); next();
     checkToken(TokenType::ASSIGN, "Assignment operator '=' expected");
     TreeNode* op = new TreeNode(getToken(), TreeNodeType::ASSIGNMENT); next();
     TreeNode* a = new TreeNode(identifier, TreeNodeType::SYMBOL);
-    TreeNode* b = parseCondition();
+    TreeNode* b = parseCondition(scope);
     op->addChild(a);
     op->addChild(b);
     return op;
@@ -369,13 +398,13 @@ TreeNode* SourceParser::parseAssignment() {
 //---------------------------------------------------------------------------
 // <condition> ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseCondition() { 
+TreeNode* SourceParser::parseCondition(SymbolTable* scope) {
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
-    operand1 = parseExpression();
+    operand1 = parseExpression(scope);
     Token token = getToken();
     while (isLogicOp(token.type)) {
         next();
-        operand2 = parseExpression();
+        operand2 = parseExpression(scope);
         op = new TreeNode(token, TreeNodeType::BINARY_OP);
         if (prevOp == NULL) op->addChild(operand1); else op->addChild(prevOp);
         op->addChild(operand2);
@@ -390,13 +419,13 @@ TreeNode* SourceParser::parseCondition() {
 //---------------------------------------------------------------------------
 // <expression> ::= <term> {(+|-) <term>}
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseExpression() {
+TreeNode* SourceParser::parseExpression(SymbolTable* scope) {
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
-    operand1 = parseTerm();
+    operand1 = parseTerm(scope);
     Token token = getToken();
     while (isTokenType(TokenType::PLUS) || isTokenType(TokenType::MINUS)) {
         next();
-        operand2 = parseTerm();
+        operand2 = parseTerm(scope);
         op = new TreeNode(token, TreeNodeType::BINARY_OP);
         if (prevOp == NULL) op->addChild(operand1); else op->addChild(prevOp);
         op->addChild(operand2);
@@ -410,13 +439,13 @@ TreeNode* SourceParser::parseExpression() {
 //---------------------------------------------------------------------------
 // <term>  ::= <bitwise> {(*|/) <bitwise>}
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseTerm() { 
+TreeNode* SourceParser::parseTerm(SymbolTable* scope) {
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
-    operand1 = parseBitwise();
+    operand1 = parseBitwise(scope);
     Token token = getToken();
     while (isTokenType(TokenType::MULTIPLY) || isTokenType(TokenType::DIVIDE)) {
         next();
-        operand2 = parseBitwise();
+        operand2 = parseBitwise(scope);
         op = new TreeNode(token, TreeNodeType::BINARY_OP);
         if (prevOp == NULL) op->addChild(operand1); else op->addChild(prevOp);
         op->addChild(operand2);
@@ -430,16 +459,19 @@ TreeNode* SourceParser::parseTerm() {
 //---------------------------------------------------------------------------
 // <bitwise>  ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseBitwise() { 
+TreeNode* SourceParser::parseBitwise(SymbolTable* scope) {
     // todo bitwise operators
-    return parseFactor(); 
+    return parseFactor(scope); 
 }
 
 
 //---------------------------------------------------------------------------
 // <factor> ::= ({!|-|+} <number>) | <identifer> | <call>
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseFactor() { 
+TreeNode* SourceParser::parseFactor(SymbolTable* scope) {
+
+    // TODO add constant to symbol table 
+
     TreeNode* factor = NULL;
     bool unaryMinus = false;
 
@@ -452,7 +484,7 @@ TreeNode* SourceParser::parseFactor() {
 
     if (isTokenType(TokenType::OP_PARENTHESES)) {
         next();
-        factor = parseExpression();
+        factor = parseExpression(scope);
         Token token = getToken();
         if (isTokenType(TokenType::CL_PARENTHESES)) next();
         else raiseError("Closing parentheses expected");
@@ -463,10 +495,14 @@ TreeNode* SourceParser::parseFactor() {
     else if (isTokenType(TokenType::IDENTIFIER)) {
         Token nextToken = getNextToken();
         if (nextToken.type == TokenType::OP_PARENTHESES) {
-            factor = parseCall(); next();
+            factor = parseCall(scope); next();
         }
         else {
-            factor = new TreeNode(getToken(), TreeNodeType::SYMBOL); next();
+            factor = new TreeNode(getToken(), TreeNodeType::SYMBOL); 
+            if (scope->lookupSymbol(getToken()) == NULL) {
+                raiseError("Symbol not defined.");
+            }
+            next();
         }
     }
     else raiseError("Number or identifier expected");

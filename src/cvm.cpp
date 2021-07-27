@@ -224,7 +224,7 @@ void sourceParserTest() {
 	auto end = std::chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
-	
+	/*
 	int count = (int) parser->getTokenCount();
 	for (int i = 0; i < count; i++) {
 		Token token = parser->getToken(i);
@@ -236,10 +236,14 @@ void sourceParserTest() {
 		cout << "Col=" << token.col;
 		cout << endl;
 	}
-
+	
 
 	TreeNode *root = parser->getSyntaxTree();
-	if (root != NULL) root->print();
+	if (root != NULL) {
+		root->print();
+	}*/
+
+	parser->getSymbolTable().printSymbols();
 
 	delete parser;
 }
