@@ -44,7 +44,8 @@ bool VirtualMachine::loadImage(void* image, WORD bytesCount) {
 // Starts execution from address [0x0000]
 //----------------------------------------------------------------------------
 void VirtualMachine::execute() {
-	WORD a, b;                  // temporary variables
+	WORD a = 0;				    // temporary variables
+	WORD b = 0;                 // temporary variables
 
 	ip = 0;                     // Set Instruction pointer to 0
 	sp = maxAddress;            // Set Stack pointer to highest address
@@ -151,7 +152,7 @@ void VirtualMachine::execute() {
 			if (a > 0) ip += memory[ip]; else ip++;
 			goto fetch;
 		case OP_IFGE:
-			b = memory[sp++];
+			a = memory[sp++];
 			if (a >= 0) ip += memory[ip]; else ip++;
 			goto fetch;
 		case OP_IFLS:
@@ -227,7 +228,7 @@ void VirtualMachine::execute() {
 // SYSCALL implementation
 //----------------------------------------------------------------------------
 void VirtualMachine::sysCall(WORD n) {
-	WORD ptr, a, b;
+	WORD ptr, a;
 	switch (n) {
 	case 0x20:  // print C style string
 		ptr = memory[sp++];

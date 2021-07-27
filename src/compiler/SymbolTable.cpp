@@ -73,7 +73,7 @@ bool SymbolTable::addSymbol(Token& token, SymbolType type) {
     Symbol entry;
     entry.name.append(token.text, token.length);
     entry.type = type;
-    entry.localIndex = getNextIndex(type);
+    entry.localIndex = (int) getNextIndex(type);
     entry.address = NULL;
     symbols.push_back(entry);
     return true;
@@ -106,10 +106,10 @@ Symbol* SymbolTable::lookupSymbol(Token& token) {
 }
 
 
-size_t SymbolTable::getNextIndex(SymbolType type) {
+int SymbolTable::getNextIndex(SymbolType type) {
     Symbol entry;
     size_t count = getSymbolsCount();
-    size_t index = 0;
+    int index = 0;
     for (int i = 0; i < count; i++) {
         entry = symbols.at(i);
         if (entry.type == type) index++;

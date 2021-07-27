@@ -136,7 +136,7 @@ WORD* ExecutableImage::getImage() {
 // Returns memory size in bytes
 //-----------------------------------------------------------------------------
 WORD ExecutableImage::getImageSize() {
-	return image.size() * sizeof(WORD);
+	return (WORD) (image.size() * sizeof(WORD));
 }
 
 

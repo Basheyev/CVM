@@ -77,11 +77,11 @@ namespace vm {
     // Symbol Table
     //------------------------------------------------------------------------
     enum class SymbolType {
-        CONSTANT, FUNCTION, ARGUMENT, VARIABLE
+        UNKNOWN, CONSTANT, FUNCTION, ARGUMENT, VARIABLE
     };
 
     constexpr char* const  SYMBOL_TYPE_MNEMONIC[] = {
-        "CONSTANT", "FUNCTION", "ARGUMENT", "VARIABLE"
+        "UNKNOWN", "CONSTANT", "FUNCTION", "ARGUMENT", "VARIABLE"
     };
 
     class Symbol {
@@ -115,7 +115,7 @@ namespace vm {
         vector<Symbol> symbols;
         vector<SymbolTable*> childs;
         SymbolTable* parent;
-        size_t getNextIndex(SymbolType type);
+        int getNextIndex(SymbolType type);
     };
 
     //------------------------------------------------------------------------
