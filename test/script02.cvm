@@ -23,7 +23,7 @@ int main() {
 	a = 5;
 	b = 6;
 	c = 6;
-	if (a != b && b == c) {
+	if (a) {
 		int x;
 		c = sum(5,6);
 	}

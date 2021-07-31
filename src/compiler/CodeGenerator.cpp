@@ -37,7 +37,7 @@ CodeGenerator::~CodeGenerator() {
 
 void CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
     try {
-        rootNode->print();
+        //rootNode->print();
         emitModule(rootNode);
     }
     catch (CodeGeneratorException& e) {
@@ -119,9 +119,9 @@ void CodeGenerator::emitIfElse(TreeNode* node) {
     TreeNode* thenBlock = node->getChild(1);
     TreeNode* elseBlock = node->getChild(2);
     emitExpression(condition);
-    cout << "cmpje  [ addr  ]" << endl;
+    cout << "ifeq  [ addr  ]" << endl;
     emitBlock(thenBlock);
-    emitBlock(elseBlock);
+    if (elseBlock != NULL) emitBlock(elseBlock);
     // address + length1;
 }
 
@@ -142,7 +142,7 @@ void CodeGenerator::emitAssignment(TreeNode* assignment) {
     emitExpression(assignment->getChild(1));
     Symbol* entry = assignment->getSymbolTable()->lookupSymbol(asgn);
     if (entry != NULL) {
-        cout << "istore ";
+        cout << "istore #";
         cout << entry->localIndex;
         cout << endl;
     }
@@ -174,11 +174,11 @@ void CodeGenerator::emitSymbol(TreeNode* node) {
         Symbol* entry = node->getSymbolTable()->lookupSymbol(token);
         if (entry != NULL) {
             if (entry->type == SymbolType::ARGUMENT) {
-                cout << "iarg  ";
+                cout << "iarg  #";
                 cout << entry->localIndex;
             }
             if (entry->type == SymbolType::VARIABLE) {
-                cout << "iload ";
+                cout << "iload #";
                 cout << entry->localIndex;
             }
         }

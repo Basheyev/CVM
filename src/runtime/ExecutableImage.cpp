@@ -156,6 +156,7 @@ void ExecutableImage::disassemble() {
 	cout << "-----------------------------------------------------" << endl;
 	cout << "Virtual machine executable image disassembly" << endl;
 	cout << "-----------------------------------------------------" << endl;
+	if (image.size() == 0) return;
 	WORD opcode;
 	WORD previousOp = -1;
 	WORD ip = 0;

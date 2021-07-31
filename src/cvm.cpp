@@ -118,6 +118,12 @@ void sourceParserTest() {
 		root->print();
 	}
 	parser->getSymbolTable().printSymbols();
+	ExecutableImage* img = new ExecutableImage();
+	CodeGenerator *codeGenerator = new CodeGenerator();
+	codeGenerator->generateCode(img, parser->getSyntaxTree());
+	img->disassemble();
+	delete img;
+	delete codeGenerator;
 	delete parser;
 }
 

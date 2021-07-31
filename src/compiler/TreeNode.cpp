@@ -71,6 +71,7 @@ TreeNode* TreeNode::getParent() {
 }
 
 TreeNode* TreeNode::getChild(size_t index) {
+	if (index >= childs.size()) return NULL;
 	return childs.at(index);
 }
 

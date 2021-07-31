@@ -9,7 +9,7 @@
 *  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
 *  <function>    ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
 *  <argument>    ::= <type> <identifier>
-*  <statement>   ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
+*  <statement>   ::= <block> | <declaration> | <assign> | <if-else> | <while> | <jump> | <call>
 *  <block>       ::= '{' {<statement>}* '}'
 *  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
 *  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
