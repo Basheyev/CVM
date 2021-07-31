@@ -11,8 +11,6 @@
 
 namespace vm {
 
-	// todo file loader
-
 	class SourceFile {
 	public:
 		SourceFile(const char* filename);

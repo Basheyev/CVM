@@ -16,6 +16,8 @@ namespace vm {
 
 	class ExecutableImage {
 	public:
+		ExecutableImage();
+		~ExecutableImage();
 		void clear();
 		WORD setEmitAddress(WORD address);
 		WORD getEmitAddress();
@@ -31,7 +33,7 @@ namespace vm {
 
 	private:
 		vector<WORD> image;
-		WORD emitAddress;
+		WORD emitAddress = 0;
 		void prepareSpace(WORD wordsCount);
 		void prepareSpace(WORD address, WORD wordsCount);
 		WORD printMnemomic(WORD address);

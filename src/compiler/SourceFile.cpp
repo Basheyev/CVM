@@ -24,7 +24,8 @@ SourceFile::SourceFile(const char* filename) {
 		file.seekg(0, ios::beg);
 		file.read(data, pos);
 		file.close();
-		data[size] = 0;
+		// Terminate C string at the end
+		data[size] = 0;  
 	}
 }
 

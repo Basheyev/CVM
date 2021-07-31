@@ -15,6 +15,15 @@ using namespace std;
 using namespace vm;
 
 
+ExecutableImage::ExecutableImage() {
+	clear();
+}
+
+ExecutableImage::~ExecutableImage() {
+	clear();
+}
+
+
 //-----------------------------------------------------------------------------
 // Clears executable image
 //-----------------------------------------------------------------------------
