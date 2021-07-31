@@ -10,6 +10,7 @@
 #include "runtime/ExecutableImage.h"
 #include "compiler/SourceParser.h"
 #include "compiler/CodeGenerator.h"
+#include "compiler/SourceFile.h"
 
 
 using namespace std;
@@ -19,7 +20,7 @@ using namespace vm;
 //-------------------------------------------------------------------
 // Virtual Machine Test
 //-------------------------------------------------------------------
-void createExecutableImage(ExecutableImage* img, WORD iterations) {
+void buildImage1(ExecutableImage* img, WORD iterations) {
 	
 	WORD dataSeg = 64;							// Data segment starts at 64
 	
@@ -50,11 +51,9 @@ void createExecutableImage(ExecutableImage* img, WORD iterations) {
 //-------------------------------------------------------------------
 // Virtual Machine Test Paramters and Local variables
 //-------------------------------------------------------------------
-void createExecutableImage2(ExecutableImage* img, WORD iterations) {
+void buildImage2(ExecutableImage* img, WORD iterations) {
 
 	WORD dataSeg = 128;							// Data segment starts at 64
-	WORD str = dataSeg;
-	img->writeData(str, "Hello, world from VM!\n", 23);
 
 	WORD sum = 32;
 	WORD hello = 64;
@@ -81,9 +80,9 @@ void createExecutableImage2(ExecutableImage* img, WORD iterations) {
 }
 
 
-void vmTest() {
+void vmTest(int num) {
 	ExecutableImage* img = new ExecutableImage();
-	createExecutableImage2(img, 15);
+	if (num == 1) buildImage1(img, 15); else buildImage2(img, 15);
 	VirtualMachine* vm = new VirtualMachine();
 	vm->loadImage(img->getImage(), img->getImageSize());
 	img->disassemble();
@@ -101,76 +100,33 @@ void vmTest() {
 
 
 
-//-------------------------------------------------------------------
-// Source Loader
-//-------------------------------------------------------------------
-bool loadFile(std::string& data, const char* filename)
-{
-	ios_base::openmode openmode = ios::ate | ios::in | ios::binary;
-	ifstream file(filename, openmode);
-	if (file.is_open()) {
-		data.clear();
-		streampos size = file.tellg();
-		data.reserve(size);
-		file.seekg(0, ios::beg);
-		data.append(istreambuf_iterator<char>(file.rdbuf()), istreambuf_iterator<char>());
-		file.close();
-		return true;
-	}
-	return false;
-}
-
-
 void sourceParserTest() {
-	string sourceCode;
+	SourceFile source("../../../test/script02.cvm");
 	cout << filesystem::current_path() << endl;
-
-	if (!loadFile(sourceCode, "../../../test/script02.cvm")) {
+	if (source.getData()==NULL) {
 		cout << "File not open." << endl;
 		return;
 	}
 	
 	auto start = std::chrono::high_resolution_clock::now();
-
-	SourceParser* parser = new SourceParser(sourceCode.c_str());
-
+	SourceParser* parser = new SourceParser(source.getData());
 	auto end = std::chrono::high_resolution_clock::now();
 	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
-	/*
-	int count = (int) parser->getTokenCount();
-	for (int i = 0; i < count; i++) {
-		Token token = parser->getToken(i);
-		cout << "'";
-		cout.write(token.text, token.length);
-		cout << "'\t";
-		cout << TOKEN_TYPE_MNEMONIC[(int)token.type] << "\t";
-		cout << "Row=" << token.row << " ";
-		cout << "Col=" << token.col;
-		cout << endl;
-	}
-	*/
-
 	TreeNode *root = parser->getSyntaxTree();
 	if (root != NULL) {
 		root->print();
 	}
-
 	parser->getSymbolTable().printSymbols();
-
 	delete parser;
 }
 
 
 int main()
 {
-	vmTest();
-	//lexerTest();
-	//compilerTest();
-	//syntaxTreeTest();
-	//codeGeneratorTest();
-	
-	//sourceParserTest();
+	//vmTest(1);
+	// vmTest(2);
+	 sourceParserTest();
 
 	return 0;
 }

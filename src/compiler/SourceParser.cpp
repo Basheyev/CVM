@@ -282,7 +282,9 @@ TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction) {
     TreeNode* block = new TreeNode(TKN_BLOCK, TreeNodeType::BLOCK, scope);
     SymbolTable* blockSymbols;
     if (isFunction) blockSymbols = scope; else {
-        blockSymbols = new SymbolTable("BLOCK");
+        string name = "block";
+        name.append(to_string(blockCounter++));
+        blockSymbols = new SymbolTable(name);
         scope->addChild(blockSymbols);
         block->setSymbolTable(blockSymbols);
     }

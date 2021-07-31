@@ -100,7 +100,8 @@ void TreeNode::print(int tab) {
 	for (int i = 0; i < tab; i++) if (i < tab - 1) cout << "| "; else cout << "|-";
 	cout << "'";
 	cout.write(token.text, token.length);
-	cout << "'" << "(" << TREE_NODE_TYPE_MNEMONIC[(unsigned int)type] << ")" << endl;
+	cout << "'" << "(" << TREE_NODE_TYPE_MNEMONIC[(unsigned int)type] << ")";
+	cout << " " << getSymbolTable()->getName() << endl;
 	//if (symbols != NULL) symbols->printSymbols();
 	for (auto& node : childs) node->print(tab + 1);
 }

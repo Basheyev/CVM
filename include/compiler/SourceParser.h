@@ -105,6 +105,7 @@ namespace vm {
         SymbolTable* getChildAt(size_t index);
         size_t getChildCount();
 
+        inline const char* getName() { return name.c_str(); };
         void clearSymbols();
         size_t getSymbolsCount();
         bool addSymbol(Token& token, SymbolType type);
@@ -185,6 +186,7 @@ namespace vm {
         TreeNode* root = NULL;
         SymbolTable rootSymbolTable;
         size_t currentToken = 0;
+        int blockCounter = 0;
 
         void parseToTokens(const char* sourceCode);
         bool isBlank(char value) { return strchr(BLANKS, value) != NULL; };
