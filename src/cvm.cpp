@@ -5,20 +5,17 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
-/*
+
 #include "runtime/VirtualMachine.h"
 #include "runtime/ExecutableImage.h"
-#include "compiler/VMCompiler.h"
-#include "compiler/VMNode.h"
-#include "compiler/VMParser.h"
-#include "compiler/VMCodeGenerator.h"
-*/
 #include "compiler/SourceParser.h"
+#include "compiler/CodeGenerator.h"
+
 
 using namespace std;
 using namespace vm;
 
-/*
+
 //-------------------------------------------------------------------
 // Virtual Machine Test
 //-------------------------------------------------------------------
@@ -103,49 +100,9 @@ void vmTest() {
 }
 
 
-//-------------------------------------------------------------------
-// Lexer Test
-//-------------------------------------------------------------------
-
-void lexerTest() {
-	VMLexer* lexer = new VMLexer();
-	char* sourceCode = "int main()\n"
-		"{\n"
-		"\t  printf (\"Wow!\");\n"
-		"\t  float a = 365.0 * 10 - 10.0 / 2 + 3;\n"
-		"\t  while (1 != 2) {\n"
-		"\t      abc.v1 = 'x';\n"
-		"\t  };\n"
-		"\t  if (a >= b) return a && b; else a || b;\n" 
-		"}\n";
-	lexer->parseToTokens(sourceCode);
-	lexer->printAllTokens();
-	delete lexer;
-}
 
 //-------------------------------------------------------------------
-// Compiler Test
-//-------------------------------------------------------------------
-void compilerTest() {
-	ExecutableImage* image = new ExecutableImage();
-
-
-	VMCompiler* compiler = new VMCompiler();
-	compiler->compile("-3+5*(6+2)*(15-3)/5", image); // =93
-	delete compiler;
-
-	VirtualMachine* runtime = new VirtualMachine();
-	runtime->loadImage(image->getImage(), image->getImageSize());
-	runtime->execute();
-
-	delete runtime;
-
-	delete image;
-}
-*/
-
-//-------------------------------------------------------------------
-// Node Test
+// Source Loader
 //-------------------------------------------------------------------
 bool loadFile(std::string& data, const char* filename)
 {
@@ -162,51 +119,7 @@ bool loadFile(std::string& data, const char* filename)
 	}
 	return false;
 }
-/*
 
-void syntaxTreeTest() {
-	string sourceCode;
-	
-	cout << filesystem::current_path() << endl;
-
-	if (!loadFile(sourceCode, "c:/Learning/cvm/cvm/test/script00.cvm")) {
-		cout << "File not open." << endl;
-		return;
-	}
-
-	VMParser *tree = new VMParser();
-	VMNode* root = tree->parse(sourceCode.c_str());
-	if (root != NULL) root->print();
-	delete tree;
-}
-
-
-void codeGeneratorTest() {
-	string sourceCode;
-
-	cout << filesystem::current_path() << endl;
-
-	if (!loadFile(sourceCode, "c:/Learning/cvm/cvm/test/script01.cvm")) {
-		cout << "File not open." << endl;
-		return;
-	}
-
-	VMParser* parser = new VMParser();
-	VMNode* root = parser->parse(sourceCode.c_str());
-	if (root != NULL) {
-		ExecutableImage* image = new ExecutableImage();
-		VMCodeGenerator* codeGenerator = new VMCodeGenerator();
-		// Print AST
-		//root->print();
-		// Generate code
-		codeGenerator->generateCode(image, root);
-		delete codeGenerator;
-		delete image;
-	}
-	delete parser;
-
-}
-*/
 
 void sourceParserTest() {
 	string sourceCode;
@@ -251,13 +164,13 @@ void sourceParserTest() {
 
 int main()
 {
-	//vmTest();
+	vmTest();
 	//lexerTest();
 	//compilerTest();
 	//syntaxTreeTest();
 	//codeGeneratorTest();
 	
-	sourceParserTest();
+	//sourceParserTest();
 
 	return 0;
 }

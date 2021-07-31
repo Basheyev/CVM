@@ -5,6 +5,8 @@
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
+#pragma once
+
 #include "compiler/SourceParser.h"
 
 #include <iostream>
@@ -117,19 +119,25 @@ int SymbolTable::getNextIndex(SymbolType type) {
     return index;
 }
 
-
 void SymbolTable::printSymbols() {
+    printRecursive(0);
+}
+
+
+void SymbolTable::printRecursive(int depth) {
     Symbol entry;
     size_t count = getSymbolsCount();
+    for (int i = 0; i < depth; i++) cout << "\t";
     cout << "------------------ " << name << " ------------------" << endl;
     for (int i = 0; i < count; i++) {
         entry = symbols.at(i);
+        for (int j = 0; j < depth; j++) cout << "\t";
         cout << entry.name << "\t";
         cout << SYMBOL_TYPE_MNEMONIC[(int)entry.type];
         cout << " #" << entry.localIndex;
         cout << endl;
     }
     for (int i = 0; i < childs.size(); i++) {
-       childs.at(i)->printSymbols();
+       childs.at(i)->printRecursive(depth + 1);
     }
 }

@@ -5,6 +5,7 @@
 *  (C) Bolat Basheyev 2021
 *
 ============================================================================*/
+#pragma once
 
 #include "compiler/SourceParser.h"
 

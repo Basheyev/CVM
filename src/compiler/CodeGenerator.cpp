@@ -45,7 +45,6 @@ void CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
         cout.write(e.token.text, e.token.length);
         cout << endl << e.error << endl;
     }
-    symbolsRoot.printSymbols();
 }
 
 
@@ -60,7 +59,7 @@ void CodeGenerator::emitModule(TreeNode* rootNode) {
             emitFunction(node);
         }
         else if (node->getType() == TreeNodeType::TYPE) {
-            emitDeclaration(node, &symbolsRoot);
+            emitDeclaration(node);
         }
     }
 }
@@ -68,39 +67,23 @@ void CodeGenerator::emitModule(TreeNode* rootNode) {
 
 // Node Childs: #0 - type, #1 - arguments, #2 - function body
 void CodeGenerator::emitFunction(TreeNode* node) {
-    
-    // add function to symbol table
     Token funcToken = node->getToken();
-    if (!symbolsRoot.addSymbol(funcToken, SymbolType::FUNCTION)) raiseError(funcToken, "Function already defined");
-   
-    // create function symbol table
-    SymbolTable* symbols = new SymbolTable();
-    symbolsRoot.addChild(symbols);
-
-    // add arguments to symbol table
-    TreeNode* arguments = node->getChild(1);
-    Token token;
-    for (int i = 0; i < arguments->getChildCount(); i++) {
-        token = arguments->getChild(i)->getChild(0)->getToken();
-        if (!symbols->addSymbol(token, SymbolType::ARGUMENT)) raiseError(token, "Argument already defined");
-    }
-
     TreeNode* body = node->getChild(2);
-    emitBlock(body, symbols);
+    emitBlock(body);
 }
 
 
-void CodeGenerator::emitBlock(TreeNode* body, SymbolTable* symbols) {
+void CodeGenerator::emitBlock(TreeNode* body) {
     // emit function body
     for (int j = 0; j < body->getChildCount(); j++) {
         TreeNode* statement = body->getChild(j);
-        if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(statement, symbols);
-        else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(statement, symbols);
-        else if (statement->getType() == TreeNodeType::RETURN) emitReturn(statement, symbols);
-        else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(statement, symbols);
+        if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(statement);
+        else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(statement);
+        else if (statement->getType() == TreeNodeType::RETURN) emitReturn(statement);
+        else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(statement);
         else if (statement->getType() == TreeNodeType::BLOCK) {
             cout << "block" << blockCounter++ << ":" << endl;
-            emitBlock(statement, symbols);
+            emitBlock(statement);
         }
         else {
             // todo other statements
@@ -110,20 +93,19 @@ void CodeGenerator::emitBlock(TreeNode* body, SymbolTable* symbols) {
 }
 
 
-void CodeGenerator::emitDeclaration(TreeNode* node, SymbolTable* symbols) {
+void CodeGenerator::emitDeclaration(TreeNode* node) {
     Token token;
     for (int i = 0; i < node->getChildCount(); i++) {
         token = node->getChild(i)->getToken();
-        if (!symbols->addSymbol(token, SymbolType::VARIABLE)) raiseError(token, "Variable already defined");
         cout << "iconst 0      // int ";
         cout.write(token.text, token.length);
         cout << ";" << endl;
     }
 }
 
-void CodeGenerator::emitCall(TreeNode* node, SymbolTable* symbols) {
+void CodeGenerator::emitCall(TreeNode* node) {
     for (int i = 0; i < node->getChildCount(); i++) {
-        emitExpression(node->getChild(i), symbols);
+        emitExpression(node->getChild(i));
     }
     cout << "call ";
     Token tkn = node->getToken();
@@ -132,33 +114,33 @@ void CodeGenerator::emitCall(TreeNode* node, SymbolTable* symbols) {
 }
 
 
-void CodeGenerator::emitIfElse(TreeNode* node, SymbolTable* symbols) {
+void CodeGenerator::emitIfElse(TreeNode* node) {
     TreeNode* condition = node->getChild(0);
     TreeNode* thenBlock = node->getChild(1);
     TreeNode* elseBlock = node->getChild(2);
-    emitExpression(condition, symbols);
+    emitExpression(condition);
     cout << "cmpje  [ addr  ]" << endl;
-    emitBlock(thenBlock, symbols);
-    emitBlock(elseBlock, symbols);
+    emitBlock(thenBlock);
+    emitBlock(elseBlock);
     // address + length1;
 }
 
 
-void CodeGenerator::emitWhile(TreeNode* node, SymbolTable* symbols) {
+void CodeGenerator::emitWhile(TreeNode* node) {
 
 }
 
-void CodeGenerator::emitReturn(TreeNode* node, SymbolTable* symbols) {
-    emitExpression(node->getChild(0), symbols);
+void CodeGenerator::emitReturn(TreeNode* node) {
+    emitExpression(node->getChild(0));
     cout << "ret  ";
     cout << endl;
 }
 
 
-void CodeGenerator::emitAssignment(TreeNode* assignment, SymbolTable* symbols) {
+void CodeGenerator::emitAssignment(TreeNode* assignment) {
     Token asgn = assignment->getChild(0)->getToken();
-    emitExpression(assignment->getChild(1), symbols);
-    Symbol* entry = symbols->lookupSymbol(asgn);
+    emitExpression(assignment->getChild(1));
+    Symbol* entry = assignment->getSymbolTable()->lookupSymbol(asgn);
     if (entry != NULL) {
         cout << "istore ";
         cout << entry->localIndex;
@@ -170,26 +152,26 @@ void CodeGenerator::emitAssignment(TreeNode* assignment, SymbolTable* symbols) {
 }
 
 
-void CodeGenerator::emitExpression(TreeNode* node, SymbolTable* symbols) {
+void CodeGenerator::emitExpression(TreeNode* node) {
     size_t childCount = node->getChildCount();
     if (childCount == 0) {
-        emitSymbol(node, symbols);
+        emitSymbol(node);
     } else if (node->getType() == TreeNodeType::BINARY_OP && childCount == 2) {
-        emitExpression(node->getChild(0), symbols);
-        emitExpression(node->getChild(1), symbols);
+        emitExpression(node->getChild(0));
+        emitExpression(node->getChild(1));
         getOpCode(node->getToken());
     } else if (node->getType() == TreeNodeType::CALL) {
-        emitCall(node, symbols);
+        emitCall(node);
     } else {
         cout << "Error unknown Node" << endl;
     }
 }
 
 
-void CodeGenerator::emitSymbol(TreeNode* node, SymbolTable* symbols) {
+void CodeGenerator::emitSymbol(TreeNode* node) {
     Token token = node->getToken();
     if (node->getType() == TreeNodeType::SYMBOL) {
-        Symbol* entry = symbols->lookupSymbol(token);
+        Symbol* entry = node->getSymbolTable()->lookupSymbol(token);
         if (entry != NULL) {
             if (entry->type == SymbolType::ARGUMENT) {
                 cout << "iarg  ";

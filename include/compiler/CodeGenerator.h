@@ -23,24 +23,20 @@ namespace vm {
         CodeGenerator();
         ~CodeGenerator();
         void generateCode(ExecutableImage* img, TreeNode* rootNode);
-
-    private:
-        SymbolTable symbolsRoot;
-
         void emitModule(TreeNode* rootNode);
         void emitFunction(TreeNode* assignment);
-        void emitBlock(TreeNode* body, SymbolTable* symbols);
-        void emitDeclaration(TreeNode* node, SymbolTable* symbols);
-        void emitCall(TreeNode* node, SymbolTable* symbols);
-        void emitIfElse(TreeNode* node, SymbolTable* symbols);
-        void emitWhile(TreeNode* node, SymbolTable* symbols);
-        void emitReturn(TreeNode* node, SymbolTable* symbols);
-        void emitAssignment(TreeNode* assignment, SymbolTable* symbols);
-        void emitExpression(TreeNode* expression, SymbolTable* symbols);
-        void emitSymbol(TreeNode* node, SymbolTable* symbols);
-
+        void emitBlock(TreeNode* body);
+        void emitDeclaration(TreeNode* node);
+        void emitCall(TreeNode* node);
+        void emitIfElse(TreeNode* node);
+        void emitWhile(TreeNode* node);
+        void emitReturn(TreeNode* node);
+        void emitAssignment(TreeNode* assignment);
+        void emitExpression(TreeNode* expression);
+        void emitSymbol(TreeNode* node);
         WORD getOpCode(Token& token);
 
+    private:
         inline void raiseError(Token& token, char* msg) { throw CodeGeneratorException{ token, msg }; }
     };
 

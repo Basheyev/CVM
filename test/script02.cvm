@@ -9,8 +9,10 @@ int sum(int var1, int var2) {
 int fact(int n) {
    int m; 
    if (n) {
+      int y;
       return n * fact(n-1);
    } else {
+      int q;
       return 1;
    }
 }

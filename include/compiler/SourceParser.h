@@ -31,6 +31,8 @@
 #include <string>
 #include <vector>
 
+#include "runtime/VirtualMachine.h"
+
 using namespace std;
 
 namespace vm {
@@ -74,7 +76,7 @@ namespace vm {
     constexpr Token TKN_MINUS = { TokenType::MINUS, "-", 1, 0, 0 };
 
     //------------------------------------------------------------------------
-    // Symbol Table
+    // Symbol table
     //------------------------------------------------------------------------
     enum class SymbolType {
         UNKNOWN, CONSTANT, FUNCTION, ARGUMENT, VARIABLE
@@ -88,8 +90,8 @@ namespace vm {
     public:
         string name;
         SymbolType type;
-        int localIndex;
-        int address;
+        WORD localIndex;
+        WORD address;
     };
 
     class SymbolTable {
@@ -109,18 +111,20 @@ namespace vm {
         Symbol* lookupSymbol(Token& token);
         Symbol* getSymbolAt(size_t index);
         void printSymbols();
-    
+
     private:
         string name;
         vector<Symbol> symbols;
         vector<SymbolTable*> childs;
         SymbolTable* parent;
         int getNextIndex(SymbolType type);
+        void printRecursive(int depth);
     };
 
     //------------------------------------------------------------------------
     // Abstract Syntax Tree Node
     //------------------------------------------------------------------------
+
     enum class TreeNodeType {
         UNKNOWN = 0, MODULE, CONSTANT, TYPE, SYMBOL, BINARY_OP, CALL,
         FUNCTION, BLOCK, ASSIGNMENT, IF_ELSE, WHILE, RETURN

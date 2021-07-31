@@ -4,23 +4,23 @@
 *
 *  Basic C like language grammar:
 *
-*  <module>          ::= {<declaration>|<function>}*
-*  <type>            ::= 'int'
-*  <declaration>     ::= <type> <identifier> {','<identifier>}* ';'
-*  <function>        ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
-*  <argument>        ::= <type> <identifier>
-*  <statement>       ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
-*  <block>           ::= '{' {<statement>}* '}'
-*  <call>            ::= <identifier> '(' {<expression>} {, expression}* ')'
-*  <if-else>         ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
-*  <while>           ::= 'while' '(' <condition> ')' <statement>
-*  <jump>            ::= 'return' <expression> ';'
-*  <assign>          ::= <identifier> = <expression> ';'
-*  <condition>       ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
-*  <expression>      ::= <term> {(+|-) <term>}
-*  <term>            ::= <bitwise> {(*|/) <bitwise>}
-*  <bitwise>         ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
-*  <factor>          ::= ({!|-|+} <number>) | <identifer> | <call>
+*  <module>      ::= {<declaration>|<function>}*
+*  <type>        ::= 'int'
+*  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
+*  <function>    ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
+*  <argument>    ::= <type> <identifier>
+*  <statement>   ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
+*  <block>       ::= '{' {<statement>}* '}'
+*  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
+*  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
+*  <while>       ::= 'while' '(' <condition> ')' <statement>
+*  <jump>        ::= 'return' <expression> ';'
+*  <assign>      ::= <identifier> = <expression> ';'
+*  <condition>   ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
+*  <expression>  ::= <term> {(+|-) <term>}
+*  <term>        ::= <bitwise> {(*|/) <bitwise>}
+*  <bitwise>     ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
+*  <factor>      ::= ({!|-|+} <number>) | <identifer> | <call>
 *
 *
 *  (C) Bolat Basheyev 2021
@@ -272,7 +272,6 @@ TreeNode* SourceParser::parseArgument(SymbolTable* scope) {
     argument->addChild(variableName);
     return argument;
 }
-
 
 
 
