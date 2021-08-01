@@ -108,6 +108,29 @@ Symbol* SymbolTable::lookupSymbol(Token& token) {
 }
 
 
+Symbol* SymbolTable::lookupSymbol(char* name, SymbolType type) {
+    Symbol entry;
+    size_t count = getSymbolsCount();
+    size_t length = strlen(name);
+    bool equalName;
+    // Search symbol in current scope
+    for (int i = 0; i < count; i++) {
+        entry = symbols.at(i);
+        if (entry.name.size() == length) {
+            equalName = strncmp(entry.name.c_str(), name, length) == 0;
+            if (equalName && entry.type==type) return &symbols.at(i);
+            
+        }
+    }
+    // Search symbol in parent scope
+    if (parent != NULL) {
+        Symbol* entry = parent->lookupSymbol(name, type);
+        if (entry != NULL) return entry;
+    }
+    return NULL;
+
+}
+
 int SymbolTable::getNextIndex(SymbolType type) {
     Symbol entry;
     size_t count = getSymbolsCount();
@@ -120,6 +143,9 @@ int SymbolTable::getNextIndex(SymbolType type) {
 }
 
 void SymbolTable::printSymbols() {
+    cout << "-----------------------------------------------------" << endl;
+    cout << "Symbol table" << endl;
+    cout << "-----------------------------------------------------" << endl;
     printRecursive(0);
 }
 
@@ -127,14 +153,20 @@ void SymbolTable::printSymbols() {
 void SymbolTable::printRecursive(int depth) {
     Symbol entry;
     size_t count = getSymbolsCount();
+    // todo print symbols inside tree
     for (int i = 0; i < depth; i++) cout << "\t";
-    cout << "------------------ " << name << " ------------------" << endl;
+    cout << name << ":" << endl;
     for (int i = 0; i < count; i++) {
         entry = symbols.at(i);
         for (int j = 0; j < depth; j++) cout << "\t";
         cout << entry.name << "\t";
         cout << SYMBOL_TYPE_MNEMONIC[(int)entry.type];
-        cout << " #" << entry.localIndex;
+        if (entry.type == SymbolType::FUNCTION) {
+            cout << " at [" << entry.address << "]";
+        } else {
+            cout << " #" << entry.localIndex;
+        }
+        
         cout << endl;
     }
     for (int i = 0; i < childs.size(); i++) {

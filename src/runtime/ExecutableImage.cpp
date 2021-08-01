@@ -9,7 +9,7 @@
 #include <cstring>
 #include <iostream>
 #include <iomanip>
-#include "runtime/ExecutableImage.h"
+#include "runtime/VirtualMachine.h"
 
 using namespace std;
 using namespace vm;
@@ -208,13 +208,13 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		//------------------------------------------------------------------------
 		// FLOW CONTROL OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_JMP:    cout << "jmp     [" << image[ip++] << "]"; break;
-		case OP_IFEQ:   cout << "ifeq    [" << image[ip++] << "]"; break;
-		case OP_IFNE:   cout << "ifne    [" << image[ip++] << "]"; break;
-		case OP_IFGR:   cout << "ifgr    [" << image[ip++] << "]"; break;
-		case OP_IFGE:   cout << "ifge    [" << image[ip++] << "]"; break;
-		case OP_IFLS:   cout << "ifls    [" << image[ip++] << "]"; break;
-		case OP_IFLE:   cout << "ifle    [" << image[ip++] << "]"; break;
+		case OP_JMP:    cout << "jmp     [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFEQ:   cout << "ifeq    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFNE:   cout << "ifne    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFGR:   cout << "ifgr    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFGE:   cout << "ifge    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFLS:   cout << "ifls    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFLE:   cout << "ifle    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
 		//------------------------------------------------------------------------
@@ -235,3 +235,4 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 	cout << endl;
 	return ip - address;
 }
+

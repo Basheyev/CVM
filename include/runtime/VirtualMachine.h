@@ -11,6 +11,10 @@
 
 #pragma once
 
+#include <vector>
+
+using namespace std;
+
 namespace vm {
 
 	typedef __int32 WORD;
@@ -56,11 +60,37 @@ namespace vm {
 	constexpr WORD OP_DROP      = 0b00000000000000000000000000011111;
 
 
+	class ExecutableImage {
+	public:
+		ExecutableImage();
+		~ExecutableImage();
+		void clear();
+		WORD setEmitAddress(WORD address);
+		WORD getEmitAddress();
+		WORD emit(WORD opcode);
+		WORD emit(WORD opcode, WORD operand);
+		WORD emit(WORD opcode, WORD operand1, WORD operand2);
+		WORD emit(ExecutableImage& img);
+		void writeWord(WORD address, WORD value);
+		void writeData(WORD address, void* data, WORD bytesCount);
+		WORD* getImage();
+		WORD getImageSize();
+		void disassemble();
+
+	private:
+		vector<WORD> image;
+		WORD emitAddress = 0;
+		void prepareSpace(WORD wordsCount);
+		void prepareSpace(WORD address, WORD wordsCount);
+		WORD printMnemomic(WORD address);
+	};
+
+
 	class VirtualMachine {
 	public:
 		VirtualMachine(WORD memorySize = 0xFFFF);             // Allocates VM memory in bytes
 		~VirtualMachine();                                    // Desctructor
-		bool loadImage(void* image, WORD bytesCount);         // Load executable image
+		bool loadImage(ExecutableImage& image);               // Load executable image
 		void execute();                                       // Runs image from address 0
 		void printState();                                    // Print current VM state
 		inline WORD getMaxAddress() { return maxAddress; };   // Get max address in WORDS
@@ -78,5 +108,9 @@ namespace vm {
 		WORD  maxAddress;                                     // Highest address in words
 		void sysCall(WORD n);                                 // System call
 	};
+
+
+
+
 
 };

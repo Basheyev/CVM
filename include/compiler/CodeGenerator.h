@@ -7,14 +7,13 @@
 ============================================================================*/
 #pragma once
 
-#include "runtime/ExecutableImage.h"
+#include "runtime/VirtualMachine.h"
 #include "compiler/SourceParser.h"
 
 
 namespace vm {
 
     typedef struct  {
-        Token token;
         char* error;
     } CodeGeneratorException;
 
@@ -23,21 +22,21 @@ namespace vm {
         CodeGenerator();
         ~CodeGenerator();
         void generateCode(ExecutableImage* img, TreeNode* rootNode);
-        void emitModule(TreeNode* rootNode);
-        void emitFunction(TreeNode* assignment);
-        void emitBlock(TreeNode* body);
-        void emitDeclaration(TreeNode* node);
-        void emitCall(TreeNode* node);
-        void emitIfElse(TreeNode* node);
-        void emitWhile(TreeNode* node);
-        void emitReturn(TreeNode* node);
-        void emitAssignment(TreeNode* assignment);
-        void emitExpression(TreeNode* expression);
-        void emitSymbol(TreeNode* node);
-        WORD getOpCode(Token& token);
+        void emitModule(ExecutableImage* img, TreeNode* rootNode);
+        void emitFunction(ExecutableImage* img, TreeNode* node);
+        void emitBlock(ExecutableImage* img, TreeNode* body);
+        void emitDeclaration(ExecutableImage* img, TreeNode* node);
+        void emitCall(ExecutableImage* img, TreeNode* node);
+        void emitIfElse(ExecutableImage* img, TreeNode* node);
+        void emitWhile(ExecutableImage* img, TreeNode* node);
+        void emitReturn(ExecutableImage* img, TreeNode* node);
+        void emitAssignment(ExecutableImage* img, TreeNode* assignment);
+        void emitExpression(ExecutableImage* img, TreeNode* expression);
+        void emitSymbol(ExecutableImage* img, TreeNode* node);
+        WORD getOpCode(ExecutableImage* img, Token& token);
 
     private:
-        inline void raiseError(Token& token, char* msg) { throw CodeGeneratorException{ token, msg }; }
+        inline void raiseError(char* msg) { throw CodeGeneratorException{msg }; }
     };
 
 }

@@ -10,7 +10,6 @@
 #include <iostream>
 #include <cstring>
 #include "runtime/VirtualMachine.h"
-#include "runtime/ExecutableImage.h"
 
 using namespace std;
 using namespace vm;
@@ -34,9 +33,9 @@ VirtualMachine::~VirtualMachine() {
 //-----------------------------------------------------------------------------
 // Loads executable image to virtual machine RAM
 //-----------------------------------------------------------------------------
-bool VirtualMachine::loadImage(void* image, WORD bytesCount) {
-	if (bytesCount > maxAddress * sizeof(WORD)) return false;
-	memcpy(memory, image, bytesCount);
+bool VirtualMachine::loadImage(ExecutableImage& image) {
+	if (image.getImageSize() > maxAddress) return false;
+	memcpy(memory, image.getImage(), image.getImageSize() * sizeof(WORD));
 	return true;
 }
 
@@ -44,6 +43,11 @@ bool VirtualMachine::loadImage(void* image, WORD bytesCount) {
 // Starts execution from address [0x0000]
 //----------------------------------------------------------------------------
 void VirtualMachine::execute() {
+
+	cout << "-----------------------------------------------------" << endl;
+	cout << "Virtual machine runtime" << endl;
+	cout << "-----------------------------------------------------" << endl;
+
 	WORD a = 0;				    // temporary variables
 	WORD b = 0;                 // temporary variables
 
@@ -52,7 +56,10 @@ void VirtualMachine::execute() {
 	fp = sp;                    // Set Frame pointer to Stack pointer
 	lp = sp - 1;                // Set Locals pointer to Stack pointer - 1
 
-	fetch: 
+fetch: 
+
+	//printState();
+
 	switch (memory[ip++]) {
 		//------------------------------------------------------------------------
 		// STACK OPERATIONS

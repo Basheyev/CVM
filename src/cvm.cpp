@@ -7,7 +7,6 @@
 #include <chrono>
 
 #include "runtime/VirtualMachine.h"
-#include "runtime/ExecutableImage.h"
 #include "compiler/SourceParser.h"
 #include "compiler/CodeGenerator.h"
 #include "compiler/SourceFile.h"
@@ -84,7 +83,7 @@ void vmTest(int num) {
 	ExecutableImage* img = new ExecutableImage();
 	if (num == 1) buildImage1(img, 15); else buildImage2(img, 15);
 	VirtualMachine* vm = new VirtualMachine();
-	vm->loadImage(img->getImage(), img->getImageSize());
+	vm->loadImage(*img);
 	img->disassemble();
 	cout << "-----------------------------------------------------" << endl;
 	cout << "Virtual Machine test:" << endl;
@@ -101,7 +100,7 @@ void vmTest(int num) {
 
 
 void sourceParserTest() {
-	SourceFile source("../../../test/script02.cvm");
+	SourceFile source("../../../test/script00.cvm");
 	cout << filesystem::current_path() << endl;
 	if (source.getData()==NULL) {
 		cout << "File not open." << endl;
@@ -114,14 +113,19 @@ void sourceParserTest() {
 	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
 	TreeNode *root = parser->getSyntaxTree();
-	if (root != NULL) {
-		root->print();
-	}
-	parser->getSymbolTable().printSymbols();
 	ExecutableImage* img = new ExecutableImage();
 	CodeGenerator *codeGenerator = new CodeGenerator();
 	codeGenerator->generateCode(img, parser->getSyntaxTree());
+	if (root != NULL) {
+		root->print();
+		parser->getSymbolTable().printSymbols();
+	}
 	img->disassemble();
+
+	VirtualMachine* machine = new VirtualMachine();
+	machine->loadImage(*img);
+	machine->execute();
+	delete machine;
 	delete img;
 	delete codeGenerator;
 	delete parser;

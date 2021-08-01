@@ -110,6 +110,7 @@ namespace vm {
         size_t getSymbolsCount();
         bool addSymbol(Token& token, SymbolType type);
         Symbol* lookupSymbol(Token& token);
+        Symbol* lookupSymbol(char* name, SymbolType type);
         Symbol* getSymbolAt(size_t index);
         void printSymbols();
 

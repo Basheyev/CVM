@@ -93,6 +93,9 @@ size_t TreeNode::getDepth() {
 
 
 void TreeNode::print() {
+	cout << "-----------------------------------------------------" << endl;
+	cout << "Parsed abstract syntax tree" << endl;
+	cout << "-----------------------------------------------------" << endl;
 	print(0);
 }
 
