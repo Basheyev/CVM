@@ -18,7 +18,7 @@ using namespace vm;
 
 
 void compilerTest() {
-	SourceFile source("../../../test/script00.cvm");
+	SourceFile source("../../../test/script01.cvm");
 	cout << filesystem::current_path() << endl;
 	if (source.getData()==NULL) {
 		cout << "File not open." << endl;
@@ -39,7 +39,7 @@ void compilerTest() {
 		parser->getSymbolTable().printSymbols();
 	}
 	img->disassemble();
-
+	
 	VirtualMachine* machine = new VirtualMachine();
 	machine->loadImage(*img);
 	machine->execute();
@@ -53,5 +53,6 @@ void compilerTest() {
 int main()
 {
 	compilerTest();
+
 	return 0;
 }

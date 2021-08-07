@@ -4,23 +4,24 @@
 *
 *  Basic C like language grammar:
 * 
-*  <module>          ::= {<declaration>|<function>}*
-*  <type>            ::= 'int'
-*  <declaration>     ::= <type> <identifier> {','<identifier>}* ';' 
-*  <function>        ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
-*  <argument>        ::= <type> <identifier>
-*  <statement>       ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>)
-*  <block>           ::= '{' {<statement>}* '}'
-*  <call>            ::= <identifier> '(' {<expression>} {, expression}* ')'
-*  <if-else>         ::= 'if' '(' <expression> ')' <statement> { 'else' <statement> }
-*  <while>           ::= 'while' '(' <expression> ')' <statement>
-*  <jump>            ::= 'return' <expression> ';'
-*  <assign>          ::= <identifier> = <expression> ';'
-*  <condition>       ::= <expression> {( == | != | > | >= | < | <= | && | '||' | !) <expression>}
-*  <expression>      ::= <term> {(+|-) <term>}
-*  <term>            ::= <bitwise> {(*|/) <bitwise>}
-*  <bitwise>         ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
-*  <factor>          ::= ({-|+} <number>) | <identifer> | <call>
+*  <module>      ::= {<declaration>|<function>}*
+*  <type>        ::= 'int'
+*  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
+*  <function>    ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
+*  <argument>    ::= <type> <identifier>
+*  <statement>   ::= <block> | <declaration> | <assign> | <if-else> | <while> | <jump> | <call>
+*  <block>       ::= '{' {<statement>}* '}'
+*  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
+*  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
+*  <while>       ::= 'while' '(' <condition> ')' <statement>
+*  <jump>        ::= 'return' <expression> ';'
+*  <assign>      ::= <identifier> = <expression> ';'
+*  <logical>     ::= <comparison> {( && | '||') <comparison>}
+*  <comparison>  ::= <expression> {( == | != | > | >= | < | <= ) <expression>}
+*  <expression>  ::= <term> {(+|-) <term>}
+*  <term>        ::= <bitwise> {(*|/) <bitwise>}
+*  <bitwise>     ::= <factor> {( & | '|' | ^ | << | >> ) <factor>}
+*  <factor>      ::= ({~|!|-|+} <number>) | <identifer> | <call>
 * 
 * 
 *  (C) Bolat Basheyev 2021
@@ -209,7 +210,8 @@ namespace vm {
         TreeNode* parseIfElse(SymbolTable* scope);
         TreeNode* parseWhile(SymbolTable* scope);
         TreeNode* parseAssignment(SymbolTable* scope);
-        TreeNode* parseCondition(SymbolTable* scope);
+        TreeNode* parseLogical(SymbolTable* scope);
+        TreeNode* parseComparison(SymbolTable* scope);
         TreeNode* parseExpression(SymbolTable* scope);
         TreeNode* parseTerm(SymbolTable* scope);
         TreeNode* parseBitwise(SymbolTable* scope);
@@ -219,7 +221,9 @@ namespace vm {
         inline Token getToken() { return getToken(currentToken); }
         inline Token getNextToken() { return getToken(currentToken + 1); }
         inline bool isTokenType(TokenType type) { return getToken().type == type; }
-        inline bool isLogicOp(TokenType type) { return type >= TokenType::EQUAL && type <= TokenType::LOGIC_NOT; }
+
+        inline bool isComparison(TokenType type) { return type >= TokenType::EQUAL && type <= TokenType::LS_EQUAL; }
+        inline bool isLogical(TokenType type) { return type >= TokenType::LOGIC_AND && type <= TokenType::LOGIC_NOT; }
         inline bool isDataType(TokenType type) { return type == TokenType::INT; }
         inline void checkToken(TokenType type, const char* msg) { if (!isTokenType(type)) raiseError(msg); }
         inline void raiseError(Token& tkn, const char* msg) { throw ParserException{ tkn, msg }; }

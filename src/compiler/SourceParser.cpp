@@ -16,11 +16,12 @@
 *  <while>       ::= 'while' '(' <condition> ')' <statement>
 *  <jump>        ::= 'return' <expression> ';'
 *  <assign>      ::= <identifier> = <expression> ';'
-*  <condition>   ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
+*  <logical>     ::= <comparison> {( && | '||') <comparison>}
+*  <comparison>  ::= <expression> {( == | != | > | >= | < | <= ) <expression>}
 *  <expression>  ::= <term> {(+|-) <term>}
 *  <term>        ::= <bitwise> {(*|/) <bitwise>}
-*  <bitwise>     ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
-*  <factor>      ::= ({!|-|+} <number>) | <identifer> | <call>
+*  <bitwise>     ::= <factor> {( & | '|' | ^ | << | >> ) <factor>}
+*  <factor>      ::= ({~|!|-|+} <number>) | <identifer> | <call>
 *
 *
 *  (C) Bolat Basheyev 2021
@@ -370,7 +371,7 @@ TreeNode* SourceParser::parseIfElse(SymbolTable* scope) {
     next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
     next();	
-    ifblock->addChild(parseCondition(scope));
+    ifblock->addChild(parseLogical(scope));
     checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
     next();	
     ifblock->addChild(parseStatement(scope));
@@ -390,7 +391,7 @@ TreeNode* SourceParser::parseWhile(SymbolTable* scope) {
     next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
     next(); 
-    whileBlock->addChild(parseCondition(scope));
+    whileBlock->addChild(parseLogical(scope));
     checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
     next(); 
     whileBlock->addChild(parseStatement(scope));
@@ -411,22 +412,42 @@ TreeNode* SourceParser::parseAssignment(SymbolTable* scope) {
     TreeNode* op = new TreeNode(getToken(), TreeNodeType::ASSIGNMENT, scope); 
     next();
     TreeNode* a = new TreeNode(identifier, TreeNodeType::SYMBOL, scope);
-    TreeNode* b = parseCondition(scope);
+    TreeNode* b = parseLogical(scope);
     op->addChild(a);
     op->addChild(b);
     return op;
 }
 
 
+
 //---------------------------------------------------------------------------
-// <condition> ::= <expression> {( == | != | > | >= | < | <= | && | '||') <expression>}
-// todo separate compare and boolean operators by priority
+// *  <logical>     ::= <comparison> {( && | '||') <comparison>}
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseCondition(SymbolTable* scope) {
+TreeNode* SourceParser::parseLogical(SymbolTable* scope) {
+    TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
+    operand1 = parseComparison(scope);
+    Token token = getToken();
+    while (isLogical(token.type)) {
+        next();
+        operand2 = parseComparison(scope);
+        op = new TreeNode(token, TreeNodeType::BINARY_OP, scope);
+        if (prevOp == NULL) op->addChild(operand1); else op->addChild(prevOp);
+        op->addChild(operand2);
+        prevOp = op;
+        token = getToken();
+    }
+    return op == NULL ? operand1 : op;
+
+}
+
+//---------------------------------------------------------------------------
+// <comparison>  :: = <expression>{ (== | != | > | >= | < | <=) < expression > }
+//---------------------------------------------------------------------------
+TreeNode* SourceParser::parseComparison(SymbolTable* scope) {
     TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
     operand1 = parseExpression(scope);
     Token token = getToken();
-    while (isLogicOp(token.type)) {
+    while (isComparison(token.type)) {
         next();
         operand2 = parseExpression(scope);
         op = new TreeNode(token, TreeNodeType::BINARY_OP, scope);

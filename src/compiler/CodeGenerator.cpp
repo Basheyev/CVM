@@ -145,10 +145,8 @@ void CodeGenerator::emitCall(ExecutableImage* img, TreeNode* node) {
             raiseError("Function not found.");
             return;
         }
-        // todo recursion doesnt work!
-        // address not yet assigned and equals to zero !!!
         WORD funcAddress = func->address;
-        img->emit(OP_CALL, funcAddress, node->getChildCount());
+        img->emit(OP_CALL, funcAddress, (WORD) node->getChildCount());
     }
 }
 
@@ -262,6 +260,33 @@ WORD CodeGenerator::getOpCode(ExecutableImage* img, Token& token) {
         break;
     case TokenType::DIVIDE: 
         img->emit(OP_DIV);
+        break;
+    case TokenType::EQUAL:
+        img->emit(OP_EQ);
+        break;
+    case TokenType::NOT_EQUAL:
+        img->emit(OP_NE);
+        break;
+    case TokenType::GREATER:
+        img->emit(OP_GR);
+        break;
+    case TokenType::GR_EQUAL:
+        img->emit(OP_GE);
+        break;
+    case TokenType::LESS:
+        img->emit(OP_LS);
+        break;
+    case TokenType::LS_EQUAL:
+        img->emit(OP_LE);
+        break;
+    case TokenType::LOGIC_AND:
+        img->emit(OP_LAND);
+        break;
+    case TokenType::LOGIC_OR:
+        img->emit(OP_LOR);
+        break;
+    case TokenType::LOGIC_NOT:
+        img->emit(OP_LNOT);
         break;
     default:
         cout << "UNKNOWN BINARY OPERATION: ";

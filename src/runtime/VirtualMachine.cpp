@@ -82,12 +82,6 @@ fetch:
 		//------------------------------------------------------------------------
 		// ARITHMETIC OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_INC:
-			memory[sp]++;
-			goto fetch;
-		case OP_DEC:
-			memory[sp]--;
-			goto fetch;
 		case OP_ADD:  
 			b = memory[sp++];
 			a = memory[sp++];
@@ -149,6 +143,53 @@ fetch:
 		case OP_IFZERO:
 			a = memory[sp++];
 			if (a == 0) ip += memory[ip]; else ip++;
+			goto fetch;
+		//------------------------------------------------------------------------
+		// LOGICAL (BOOLEAN) OPERATIONS
+		//------------------------------------------------------------------------
+		case OP_EQ:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = (a == b);
+			goto fetch;
+		case OP_NE:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = (a != b);
+			goto fetch;
+		case OP_GR:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = (a > b);
+			goto fetch;
+		case OP_GE:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = (a >= b);
+			goto fetch;
+		case OP_LS:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = (a < b);
+			goto fetch;
+		case OP_LE:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = (a <= b);
+			goto fetch;
+		case OP_LAND:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = a && b;
+			goto fetch;
+		case OP_LOR:
+			b = memory[sp++];
+			a = memory[sp++];
+			memory[--sp] = a || b;
+			goto fetch;
+		case OP_LNOT:
+			a = memory[sp++];
+			memory[--sp] = !a;
 			goto fetch;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS

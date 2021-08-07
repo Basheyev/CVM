@@ -151,7 +151,7 @@ WORD* ExecutableImage::getImage() {
 // Returns memory size in words
 //-----------------------------------------------------------------------------
 WORD ExecutableImage::getSize() {
-	return image.size();
+	return (WORD) image.size();
 }
 
 
@@ -196,8 +196,6 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		//------------------------------------------------------------------------
 		// ARITHMETIC OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_INC:    cout << "iinc    "; break;
-		case OP_DEC:    cout << "idec    "; break;
 		case OP_ADD:    cout << "iadd    "; break;
 		case OP_SUB:    cout << "isub    "; break;
 		case OP_MUL:    cout << "imul    "; break;
@@ -215,7 +213,17 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		// FLOW CONTROL OPERATIONS
 		//------------------------------------------------------------------------
 		case OP_JMP:    cout << "jmp     [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFZERO:   cout << "ifzero  [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFZERO: cout << "ifzero  [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_EQ:     cout << "eq    "; break;
+		case OP_NE:     cout << "ne    "; break;
+		case OP_GR:     cout << "gr    "; break;
+		case OP_GE:     cout << "ge    "; break;
+		case OP_LS:     cout << "ls    "; break;
+		case OP_LE:     cout << "le    "; break;
+		case OP_LAND:   cout << "land  "; break;
+		case OP_LOR:    cout << "lor   "; break;
+		case OP_LNOT:   cout << "lnot  "; break;
+
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
 		//------------------------------------------------------------------------
