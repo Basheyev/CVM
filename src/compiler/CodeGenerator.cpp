@@ -201,11 +201,10 @@ void CodeGenerator::emitAssignment(ExecutableImage* img, TreeNode* assignment) {
     Token asgn = assignment->getChild(0)->getToken();
     emitExpression(img, assignment->getChild(1));
     Symbol* entry = assignment->getSymbolTable()->lookupSymbol(asgn);
-    if (entry != NULL) {
+    if (entry != NULL && entry->type==SymbolType::VARIABLE) {
         img->emit(OP_STORE, entry->localIndex);
-    }
-    else {
-
+    } else {
+        raiseError("Can not assign if its not variable.");
     }
 }
 
