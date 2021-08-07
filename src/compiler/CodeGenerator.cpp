@@ -190,7 +190,7 @@ void CodeGenerator::emitWhile(ExecutableImage* img, TreeNode* node) {
         w1 = whileCode.readWord(i);
         w2 = whileCode.readWord(i + 1);
         if (w1 == MAGIC_BREAK && w2 == MAGIC_BREAK) {
-            offset = jumpOut - i - 1 - 2;
+            offset = jumpOut - i - 2;
             whileCode.writeWord(i, OP_JMP);
             whileCode.writeWord(i + 1, offset);
         }
