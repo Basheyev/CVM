@@ -64,16 +64,14 @@ void CodeGenerator::emitModule(ExecutableImage* img, TreeNode* rootNode) {
     for (int i = 0; i < rootNode->getChildCount(); i++) {
         TreeNode* node = rootNode->getChild(i);
         if (node->getType() == TreeNodeType::FUNCTION) {
+            
+            // set funcation address
             Token tkn = node->getToken();
-            // emit function code and get address
-            ExecutableImage function;
-            emitFunction(&function, node);
-            WORD funcAddress = img->getEmitAddress();
-            img->emit(function);
-
-            // get funcation address
             Symbol* symbol = node->getSymbolTable()->lookupSymbol(tkn);
-            symbol->address = funcAddress;
+            symbol->address = img->getEmitAddress();
+            
+            // emit function code
+            emitFunction(img, node);
 
         } else if (node->getType() == TreeNodeType::TYPE) {
             ExecutableImage data;
@@ -117,6 +115,7 @@ void CodeGenerator::emitBlock(ExecutableImage* img, TreeNode* body) {
 
 void CodeGenerator::emitDeclaration(ExecutableImage* img, TreeNode* node) {
     Token token;
+    // TODO allocate all space in the beginning (?)
     for (int i = 0; i < node->getChildCount(); i++) {
         token = node->getChild(i)->getToken();
         img->emit(OP_CONST, 0);
@@ -140,6 +139,8 @@ void CodeGenerator::emitCall(ExecutableImage* img, TreeNode* node) {
             raiseError("Function not found.");
             return;
         }
+        // todo recursion doesnt work!
+        // address not yet assigned and equals to zero !!!
         WORD funcAddress = func->address;
         img->emit(OP_CALL, funcAddress, node->getChildCount());
     }
@@ -155,7 +156,7 @@ void CodeGenerator::emitIfElse(ExecutableImage* img, TreeNode* node) {
     emitExpression(img, condition);
     // if
     emitBlock(&thenCode, thenBlock);                // generate then block code
-    img->emit(OP_IFNE, thenCode.getSize() + 1 + 2); // +1 operand, +2 jmp [offset]
+    img->emit(OP_IFEQ, thenCode.getSize() + 1 + 2); // +1 operand, +2 jmp [offset]
     // then
     img->emit(thenCode);
     // else

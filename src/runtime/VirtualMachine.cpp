@@ -58,7 +58,7 @@ void VirtualMachine::execute() {
 
 fetch: 
 
-	//printState();
+	// printState();
 
 	switch (memory[ip++]) {
 		//------------------------------------------------------------------------

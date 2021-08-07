@@ -1,17 +1,15 @@
 
-int dec(int n) {
-	return n - 1;
+int fact(int n) {
+   int x;
+   if (n) {
+      x = n * fact(n-1);
+      iput(x);
+      return x;
+   } else {
+      return 1;
+   }
 }
 
-
 int main() {
-	int i;
-	int a;
-	i = 5;
-	while (i) {
-	   iput(a);
-	   a = a + i;
-	   i = dec(i);
-	}
-	return a;
+	return fact(10);
 }

@@ -99,7 +99,7 @@ void vmTest(int num) {
 
 
 
-void sourceParserTest() {
+void compilerTest() {
 	SourceFile source("../../../test/script00.cvm");
 	cout << filesystem::current_path() << endl;
 	if (source.getData()==NULL) {
@@ -134,9 +134,9 @@ void sourceParserTest() {
 
 int main()
 {
-	//vmTest(1);
+	// vmTest(1);
 	// vmTest(2);
-	 sourceParserTest();
+	compilerTest();
 
 	return 0;
 }
