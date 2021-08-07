@@ -288,6 +288,24 @@ WORD CodeGenerator::getOpCode(ExecutableImage* img, Token& token) {
     case TokenType::LOGIC_NOT:
         img->emit(OP_LNOT);
         break;
+    case TokenType::NOT:
+        img->emit(OP_NOT);
+        break;
+    case TokenType::AND:
+        img->emit(OP_AND);
+        break;
+    case TokenType::OR:
+        img->emit(OP_OR);
+        break;
+    case TokenType::XOR:
+        img->emit(OP_XOR);
+        break;
+    case TokenType::SHL:
+        img->emit(OP_SHL);
+        break;
+    case TokenType::SHR:
+        img->emit(OP_SHR);
+        break;
     default:
         cout << "UNKNOWN BINARY OPERATION: ";
         cout.write(token.text, token.length);

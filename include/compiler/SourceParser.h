@@ -47,7 +47,7 @@ namespace vm {
     enum class TokenType {
         EMPTY = 0, NONE, UNKNOWN, IDENTIFIER, CONST_INTEGER, CONST_STRING, COMMA, EOS,
         OP_BRACES, CL_BRACES, OP_BRACKETS, CL_BRACKETS, OP_PARENTHESES, CL_PARENTHESES,
-        INT, IF, ELSE, WHILE, RETURN, ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, AND, OR, XOR, NOT, SHL, SHR,
+        INT, IF, ELSE, WHILE, RETURN, ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, NOT, AND, OR, XOR, SHL, SHR,
         EQUAL, NOT_EQUAL, GREATER, GR_EQUAL, LESS, LS_EQUAL, LOGIC_AND, LOGIC_OR, LOGIC_NOT
     };
 
@@ -55,7 +55,7 @@ namespace vm {
         "", "", "", "", "", "", ",", ";",
         "{", "}", "[", "]", "(", ")",
         "int", "if", "else", "while", "return",
-        "=", "+", "-", "*", "/", "&", "|", "^", "~", "<<", ">>",
+        "=", "+", "-", "*", "/", "~", "&", "|", "^", "<<", ">>",
         "==", "!=", ">", ">=", "<", "<=", "&&", "||", "!"
     };
 
@@ -223,7 +223,8 @@ namespace vm {
         inline bool isTokenType(TokenType type) { return getToken().type == type; }
 
         inline bool isComparison(TokenType type) { return type >= TokenType::EQUAL && type <= TokenType::LS_EQUAL; }
-        inline bool isLogical(TokenType type) { return type >= TokenType::LOGIC_AND && type <= TokenType::LOGIC_NOT; }
+        inline bool isLogical(TokenType type) { return type >= TokenType::LOGIC_AND && type <= TokenType::LOGIC_OR; }
+        inline bool isBitwise(TokenType type) { return type >= TokenType::AND && type <= TokenType::SHR; }
         inline bool isDataType(TokenType type) { return type == TokenType::INT; }
         inline void checkToken(TokenType type, const char* msg) { if (!isTokenType(type)) raiseError(msg); }
         inline void raiseError(Token& tkn, const char* msg) { throw ParserException{ tkn, msg }; }

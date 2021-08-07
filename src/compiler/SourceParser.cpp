@@ -502,16 +502,27 @@ TreeNode* SourceParser::parseTerm(SymbolTable* scope) {
 
 
 //---------------------------------------------------------------------------
-// <bitwise>  ::= <factor> {( & | '|' | ^ | ~ | << | >> ) <factor>}
+// <bitwise>  ::= <factor> {( & | '|' | ^ | << | >> ) <factor>}
 //---------------------------------------------------------------------------
 TreeNode* SourceParser::parseBitwise(SymbolTable* scope) {
-    // todo bitwise operators
-    return parseFactor(scope); 
+    TreeNode* operand1, * operand2, * op = NULL, * prevOp = NULL;
+    operand1 = parseFactor(scope);
+    Token token = getToken();
+    while (isBitwise(token.type)) {
+        next();
+        operand2 = parseFactor(scope);
+        op = new TreeNode(token, TreeNodeType::BINARY_OP, scope);
+        if (prevOp == NULL) op->addChild(operand1); else op->addChild(prevOp);
+        op->addChild(operand2);
+        prevOp = op;
+        token = getToken();
+    }
+    return op == NULL ? operand1 : op;
 }
 
 
 //---------------------------------------------------------------------------
-// <factor> ::= ({!|-|+} <number>) | <identifer> | <call>
+// <factor> ::= ({~|!|-|+} <number>) | <identifer> | <call>
 //---------------------------------------------------------------------------
 TreeNode* SourceParser::parseFactor(SymbolTable* scope) {
 
