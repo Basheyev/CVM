@@ -99,7 +99,7 @@ namespace vm {
 
     class SymbolTable {
     public:
-        // TODO add addresses & labels
+
         SymbolTable(string name = "GLOBAL");
         ~SymbolTable();
 

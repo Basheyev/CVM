@@ -98,6 +98,8 @@ void CodeGenerator::emitFunction(ExecutableImage* img, TreeNode* node) {
 }
 
 
+// todo emitStatement
+
 void CodeGenerator::emitBlock(ExecutableImage* img, TreeNode* body) {
     // emit function body
     for (int j = 0; j < body->getChildCount(); j++) {
