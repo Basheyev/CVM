@@ -1,4 +1,3 @@
-
 //----------------------------
 // Factorial
 //----------------------------
@@ -6,20 +5,26 @@ int fact(int n) {
    int x;
    if (n) {
       x = n * fact(n-1);
-      iput(x);
       return x;
-   } else return 1;
+   } else {
+      x = 10;
+      return 1;
+   }
+   return 0;
 }
+
 
 //----------------------------
 // Entry point
 //----------------------------
 int main() {
-    int i;
-    while (i < 12) {
+    int n, i;
+    i = 1;
+    while (i<=9) {
+        if (i>6) break;
+        n = fact(i);
+        iput(n);
         i = i + 1;
     }
-	return fact(i);
+	return n;
 }
-
-"sdsdsdsd

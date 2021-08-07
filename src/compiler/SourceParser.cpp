@@ -14,7 +14,7 @@
 *  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
 *  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
 *  <while>       ::= 'while' '(' <condition> ')' <statement>
-*  <jump>        ::= 'return' <expression> ';'
+*  <jump>        ::= 'return' <expression> ';' | 'break' ';'
 *  <assign>      ::= <identifier> = <expression> ';'
 *  <logical>     ::= <comparison> {( && | '||') <comparison>}
 *  <comparison>  ::= <expression> {( == | != | > | >= | < | <= ) <expression>}
@@ -284,7 +284,7 @@ TreeNode* SourceParser::parseFunction(SymbolTable* scope) {
 
     // update params count
     Symbol* func = scope->lookupSymbol(function->getToken());
-    func->argCount = arguments->getChildCount();
+    func->argCount = (WORD) arguments->getChildCount();
 
     TreeNode* functionBody = parseBlock(blockSymbols, true);
     function->addChild(returnType);
@@ -363,7 +363,12 @@ TreeNode* SourceParser::parseStatement(SymbolTable* scope) {
         TreeNode* expr = parseExpression(scope);
         returnStmt->addChild(expr);
         return returnStmt;
-    } else raiseError("Unexpected token, statement expected");
+    } if (token.type == TokenType::BREAK) {
+        // todo check are we in while cycle?
+        TreeNode* breakStmt = new TreeNode(token, TreeNodeType::BREAK, scope); next();
+        return breakStmt;
+    }
+    else raiseError("Unexpected token, statement expected");
     return NULL;
 }
 

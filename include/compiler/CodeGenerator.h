@@ -31,6 +31,7 @@ namespace vm {
         void emitIfElse(ExecutableImage* img, TreeNode* node);
         void emitWhile(ExecutableImage* img, TreeNode* node);
         void emitReturn(ExecutableImage* img, TreeNode* node);
+        void emitBreak(ExecutableImage* img, TreeNode* node);
         void emitAssignment(ExecutableImage* img, TreeNode* assignment);
         void emitExpression(ExecutableImage* img, TreeNode* expression);
         void emitSymbol(ExecutableImage* img, TreeNode* node);

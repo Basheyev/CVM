@@ -15,6 +15,8 @@
 using namespace vm;
 using namespace std;
 
+constexpr WORD MAGIC_BREAK = 0xFFFFFFFF;
+
 // todo generate local variables at beginning
 // todo add break;
 // todo error info and handling
@@ -97,6 +99,7 @@ void CodeGenerator::emitStatement(ExecutableImage* img, TreeNode* statement) {
     if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(img, statement);
     else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(img, statement);
     else if (statement->getType() == TreeNodeType::RETURN) emitReturn(img, statement);
+    else if (statement->getType() == TreeNodeType::BREAK) emitBreak(img, statement);
     else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(img, statement);
     else if (statement->getType() == TreeNodeType::WHILE) emitWhile(img, statement);
     else if (statement->getType() == TreeNodeType::CALL) emitCall(img, statement);
@@ -154,13 +157,15 @@ void CodeGenerator::emitIfElse(ExecutableImage* img, TreeNode* node) {
     emitExpression(img, condition);
     // if
     emitStatement(&thenCode, thenBlock);                // generate then block code
-    img->emit(OP_IFZERO, thenCode.getSize() + 1 + 2); // +1 operand, +2 jmp [offset]
+    WORD offset = thenCode.getSize() + 1;
+    if (elseBlock != NULL) offset += 2;                 // +2 word of else skip jump ops
+    img->emit(OP_IFZERO,  offset);                      // +1 operand 
     // then
     img->emit(thenCode);
     // else
     if (elseBlock != NULL) {
         emitStatement(&elseCode, elseBlock);
-        img->emit(OP_JMP, elseCode.getSize());
+        img->emit(OP_JMP, elseCode.getSize() + 1);      // +1 operand +2 else skip jump
         img->emit(elseCode);
     }
 }
@@ -176,7 +181,21 @@ void CodeGenerator::emitWhile(ExecutableImage* img, TreeNode* node) {
     emitExpression(&conditionCode, condition);
     img->emit(conditionCode);
     // +1 operand, +2 jmp [offset]
-    img->emit(OP_IFZERO, whileCode.getSize() + 1 + 2); 
+    WORD jumpOut = whileCode.getSize() + 1 + 2;
+    img->emit(OP_IFZERO, jumpOut);
+
+    // search BREAK statements and replace with relative jump out
+    WORD w1, w2, offset;
+    for (int i = 0; i < whileCode.getSize() - 1; i++) {
+        w1 = whileCode.readWord(i);
+        w2 = whileCode.readWord(i + 1);
+        if (w1 == MAGIC_BREAK && w2 == MAGIC_BREAK) {
+            offset = jumpOut - i - 1 - 2;
+            whileCode.writeWord(i, OP_JMP);
+            whileCode.writeWord(i + 1, offset);
+        }
+    }
+
     // Emit while block statements
     img->emit(whileCode);                            
     // unconditional jump back to condition expression 
@@ -186,6 +205,12 @@ void CodeGenerator::emitWhile(ExecutableImage* img, TreeNode* node) {
 void CodeGenerator::emitReturn(ExecutableImage* img, TreeNode* node) {
     emitExpression(img, node->getChild(0));
     img->emit(OP_RET);
+}
+
+void CodeGenerator::emitBreak(ExecutableImage* img, TreeNode* node) {
+    // reserve space for jump out of While cycle and
+    // mark BREAK as two MAGIC_BREAK, MAGIC_BREAK values
+    img->emit(MAGIC_BREAK, MAGIC_BREAK);
 }
 
 

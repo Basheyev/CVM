@@ -1,4 +1,17 @@
 
+//----------------------------
+// Factorial
+//----------------------------
+int fact(int n) {
+   int x;
+   if (n) {
+      x = n * fact(n-1);
+      iput(x);
+      return x;
+   } else return 1;
+}
+
+
 int f(int n) {
     return n * n;
 }

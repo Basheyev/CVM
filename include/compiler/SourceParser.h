@@ -14,7 +14,7 @@
 *  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
 *  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
 *  <while>       ::= 'while' '(' <condition> ')' <statement>
-*  <jump>        ::= 'return' <expression> ';'
+*  <jump>        ::= 'return' <expression> ';' | 'break' ';'
 *  <assign>      ::= <identifier> = <expression> ';'
 *  <logical>     ::= <comparison> {( && | '||') <comparison>}
 *  <comparison>  ::= <expression> {( == | != | > | >= | < | <= ) <expression>}
@@ -47,14 +47,14 @@ namespace vm {
     enum class TokenType {
         EMPTY = 0, NONE, UNKNOWN, IDENTIFIER, CONST_INTEGER, CONST_STRING, COMMA, EOS,
         OP_BRACES, CL_BRACES, OP_BRACKETS, CL_BRACKETS, OP_PARENTHESES, CL_PARENTHESES,
-        INT, IF, ELSE, WHILE, RETURN, ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, NOT, AND, OR, XOR, SHL, SHR,
+        INT, IF, ELSE, WHILE, RETURN, BREAK, ASSIGN, PLUS, MINUS, MULTIPLY, DIVIDE, NOT, AND, OR, XOR, SHL, SHR,
         EQUAL, NOT_EQUAL, GREATER, GR_EQUAL, LESS, LS_EQUAL, LOGIC_AND, LOGIC_OR, LOGIC_NOT
     };
 
     constexpr char* const TOKEN_TYPE_MNEMONIC[] = {
         "", "", "", "", "", "", ",", ";",
         "{", "}", "[", "]", "(", ")",
-        "int", "if", "else", "while", "return",
+        "int", "if", "else", "while", "return", "break",
         "=", "+", "-", "*", "/", "~", "&", "|", "^", "<<", ">>",
         "==", "!=", ">", ">=", "<", "<=", "&&", "||", "!"
     };
@@ -134,12 +134,12 @@ namespace vm {
 
     enum class TreeNodeType {
         UNKNOWN = 0, MODULE, CONSTANT, TYPE, SYMBOL, UNARY_OP, BINARY_OP, CALL,
-        FUNCTION, BLOCK, ASSIGNMENT, IF_ELSE, WHILE, RETURN
+        FUNCTION, BLOCK, ASSIGNMENT, IF_ELSE, WHILE, RETURN, BREAK
     };
 
     constexpr char* const TREE_NODE_TYPE_MNEMONIC[] = {
         "UNKNOWN", "MODULE", "CONSTANT", "TYPE", "SYMBOL", "UNARY_OP", "BINARY_OP", "CALL",
-        "FUNCTION", "BLOCK", "ASSIGNMENT", "IF_ELSE", "WHILE", "RETURN"
+        "FUNCTION", "BLOCK", "ASSIGNMENT", "IF_ELSE", "WHILE", "RETURN", "BREAK"
     };
 
     class TreeNode {
