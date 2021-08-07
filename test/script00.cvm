@@ -1,16 +1,17 @@
-int sum(int a, int b) {
-	return a + b;
-}
 
-int sum2(int a, int b) {
-	return a + b;
+int dec(int n) {
+	return n - 1;
 }
 
 
 int main() {
-	int a,b,c;
-	a = 5;
-	b = 6;
-	c = sum(a,b) / 2;
-	return c;
+	int i;
+	int a;
+	i = 5;
+	while (i) {
+	   iput(a);
+	   a = a + i;
+	   i = dec(i);
+	}
+	return a;
 }

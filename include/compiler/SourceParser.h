@@ -88,10 +88,10 @@ namespace vm {
 
     class Symbol {
     public:
-        string name;
-        SymbolType type;
-        WORD localIndex;
-        WORD address;
+        string name = "";
+        SymbolType type = SymbolType::UNKNOWN;
+        WORD localIndex = -1;
+        WORD address = -1;
     };
 
     class SymbolTable {

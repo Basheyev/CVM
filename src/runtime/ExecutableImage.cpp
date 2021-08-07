@@ -101,10 +101,9 @@ WORD ExecutableImage::emit(WORD opcode, WORD operand1, WORD operand2) {
 //-----------------------------------------------------------------------------
 WORD ExecutableImage::emit(ExecutableImage& img) {
 	WORD startAddress = emitAddress;
-	WORD bytesCount = img.getImageSize();
-	WORD wordsCount = bytesCount / sizeof(WORD);
+	WORD wordsCount = img.getSize();
 	prepareSpace(wordsCount);
-	memcpy(image.data() + emitAddress, img.getImage(), bytesCount);
+	memcpy(image.data() + emitAddress, img.getImage(), wordsCount * sizeof(WORD));
 	emitAddress += wordsCount;
 	return startAddress;
 }
@@ -142,10 +141,10 @@ WORD* ExecutableImage::getImage() {
 
 
 //-----------------------------------------------------------------------------
-// Returns memory size in bytes
+// Returns memory size in words
 //-----------------------------------------------------------------------------
-WORD ExecutableImage::getImageSize() {
-	return (WORD) (image.size() * sizeof(WORD));
+WORD ExecutableImage::getSize() {
+	return image.size();
 }
 
 

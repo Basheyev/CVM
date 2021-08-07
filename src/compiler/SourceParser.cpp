@@ -180,6 +180,11 @@ TokenType SourceParser::validateString(char* text, int length) {
 //---------------------------------------------------------------------------
 void SourceParser::buildSyntaxTree() {
     currentToken = 0;
+
+    // add iput system function
+    Token iput = { TokenType::IDENTIFIER, "iput", 4, 0,0 };
+    rootSymbolTable.addSymbol(iput, SymbolType::FUNCTION);
+    
     root = parseModule(&rootSymbolTable);
 }
 
@@ -295,8 +300,8 @@ TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction) {
     }
     // todo check logic
     if (blockSymbols->getSymbolsCount() == 0) {
-        scope->removeChild(blockSymbols);
-        block->setSymbolTable(scope);
+     //   scope->removeChild(blockSymbols);
+      //  block->setSymbolTable(scope);
     }
     return block;
 }

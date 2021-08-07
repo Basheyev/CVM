@@ -65,10 +65,6 @@ void CodeGenerator::emitModule(ExecutableImage* img, TreeNode* rootNode) {
         TreeNode* node = rootNode->getChild(i);
         if (node->getType() == TreeNodeType::FUNCTION) {
             Token tkn = node->getToken();
-            cout << endl;
-            cout.write(tkn.text, tkn.length);
-            cout << ":" << endl;
-
             // emit function code and get address
             ExecutableImage function;
             emitFunction(&function, node);
@@ -106,13 +102,14 @@ void CodeGenerator::emitBlock(ExecutableImage* img, TreeNode* body) {
         else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(img, statement);
         else if (statement->getType() == TreeNodeType::RETURN) emitReturn(img, statement);
         else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(img, statement);
+        else if (statement->getType() == TreeNodeType::WHILE) emitWhile(img, statement);
+        else if (statement->getType() == TreeNodeType::CALL) emitCall(img, statement);
         else if (statement->getType() == TreeNodeType::BLOCK) {
-            cout << "block" << body->getSymbolTable()->getName() << ":" << endl;
             emitBlock(img, statement);
         }
         else {
             // todo other statements
-
+            raiseError("Unknown structure in syntax tree.");
         }
     }
 }
@@ -123,10 +120,6 @@ void CodeGenerator::emitDeclaration(ExecutableImage* img, TreeNode* node) {
     for (int i = 0; i < node->getChildCount(); i++) {
         token = node->getChild(i)->getToken();
         img->emit(OP_CONST, 0);
-
-        cout << "iconst 0      // int ";
-        cout.write(token.text, token.length);
-        cout << ";" << endl;
     }
 }
 
@@ -137,16 +130,19 @@ void CodeGenerator::emitCall(ExecutableImage* img, TreeNode* node) {
     }
 
     Token funcToken = node->getToken();
-    Symbol* func = node->getSymbolTable()->lookupSymbol(funcToken);
-    if (func == NULL || func->type != SymbolType::FUNCTION) {
-        raiseError("Function not found.");
-        return;
+    // system function
+    if (funcToken.length == 4 && strncmp(funcToken.text, "iput", 4) == 0) {
+        img->emit(OP_SYSCALL, 0x21);
+    } else {
+        // user function
+        Symbol* func = node->getSymbolTable()->lookupSymbol(funcToken);
+        if (func == NULL || func->type != SymbolType::FUNCTION) {
+            raiseError("Function not found.");
+            return;
+        }
+        WORD funcAddress = func->address;
+        img->emit(OP_CALL, funcAddress, node->getChildCount());
     }
-    WORD funcAddress = func->address;
-    img->emit(OP_CALL, funcAddress, node->getChildCount());
-
-    cout << "call [" << funcAddress << "], " << node->getChildCount() << endl;
-
 }
 
 
@@ -158,30 +154,39 @@ void CodeGenerator::emitIfElse(ExecutableImage* img, TreeNode* node) {
     // condition
     emitExpression(img, condition);
     // if
-    emitBlock(&thenCode, thenBlock);
-    img->emit(OP_IFNE, thenCode.getImageSize() + 1);
+    emitBlock(&thenCode, thenBlock);                // generate then block code
+    img->emit(OP_IFNE, thenCode.getSize() + 1 + 2); // +1 operand, +2 jmp [offset]
     // then
     img->emit(thenCode);
     // else
     if (elseBlock != NULL) {
         emitBlock(&elseCode, elseBlock);
-        img->emit(OP_JMP, elseCode.getImageSize() + 1);
+        img->emit(OP_JMP, elseCode.getSize());
         img->emit(elseCode);
     }
-
-    cout << "ifeq  [+" << elseCode.getImageSize() + 1 << "]" << endl;
 }
 
 
 void CodeGenerator::emitWhile(ExecutableImage* img, TreeNode* node) {
-
+    TreeNode* condition = node->getChild(0);
+    TreeNode* whileBlock = node->getChild(1);
+    ExecutableImage conditionCode, whileCode;
+    // Generate while block code
+    emitBlock(&whileCode, whileBlock);
+    // Generate and emit condition expression code
+    emitExpression(&conditionCode, condition);
+    img->emit(conditionCode);
+    // +1 operand, +2 jmp [offset]
+    img->emit(OP_IFEQ, whileCode.getSize() + 1 + 2); 
+    // Emit while block statements
+    img->emit(whileCode);                            
+    // unconditional jump back to condition expression 
+    img->emit(OP_JMP, -whileCode.getSize() - conditionCode.getSize() - 1 - 2);      
 }
 
 void CodeGenerator::emitReturn(ExecutableImage* img, TreeNode* node) {
     emitExpression(img, node->getChild(0));
     img->emit(OP_RET);
-    cout << "ret  ";
-    cout << endl;
 }
 
 
@@ -191,9 +196,6 @@ void CodeGenerator::emitAssignment(ExecutableImage* img, TreeNode* assignment) {
     Symbol* entry = assignment->getSymbolTable()->lookupSymbol(asgn);
     if (entry != NULL) {
         img->emit(OP_STORE, entry->localIndex);
-        cout << "istore #";
-        cout << entry->localIndex;
-        cout << endl;
     }
     else {
 
@@ -224,13 +226,9 @@ void CodeGenerator::emitSymbol(ExecutableImage* img, TreeNode* node) {
         if (entry != NULL) {
             if (entry->type == SymbolType::ARGUMENT) {
                 img->emit(OP_ARG, entry->localIndex);
-                cout << "iarg  #";
-                cout << entry->localIndex;
             }
             if (entry->type == SymbolType::VARIABLE) {
                 img->emit(OP_LOAD, entry->localIndex);
-                cout << "iload #";
-                cout << entry->localIndex;
             }
         }
     }
@@ -239,10 +237,7 @@ void CodeGenerator::emitSymbol(ExecutableImage* img, TreeNode* node) {
         str.append(token.text, token.length);
         WORD value = stoi(str);
         img->emit(OP_CONST, value);
-        cout << "iconst ";
-        cout.write(token.text, token.length);
     }
-    cout << endl;
 }
 
 
@@ -250,19 +245,15 @@ WORD CodeGenerator::getOpCode(ExecutableImage* img, Token& token) {
     switch (token.type) {
     case TokenType::PLUS: 
         img->emit(OP_ADD);
-        cout << "iadd" << endl; 
         break;
     case TokenType::MINUS: 
         img->emit(OP_SUB);
-        cout << "isub" << endl; 
         break;
     case TokenType::MULTIPLY: 
         img->emit(OP_MUL);
-        cout << "imul" << endl; 
         break;
     case TokenType::DIVIDE: 
         img->emit(OP_DIV);
-        cout << "idiv" << endl; 
         break;
     default:
         cout << "UNKNOWN BINARY OPERATION: ";

@@ -74,7 +74,7 @@ namespace vm {
 		void writeWord(WORD address, WORD value);
 		void writeData(WORD address, void* data, WORD bytesCount);
 		WORD* getImage();
-		WORD getImageSize();
+		WORD getSize();
 		void disassemble();
 
 	private:

@@ -34,8 +34,8 @@ VirtualMachine::~VirtualMachine() {
 // Loads executable image to virtual machine RAM
 //-----------------------------------------------------------------------------
 bool VirtualMachine::loadImage(ExecutableImage& image) {
-	if (image.getImageSize() > maxAddress) return false;
-	memcpy(memory, image.getImage(), image.getImageSize() * sizeof(WORD));
+	if (image.getSize() > maxAddress) return false;
+	memcpy(memory, image.getImage(), image.getSize() * sizeof(WORD));
 	return true;
 }
 

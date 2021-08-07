@@ -18,12 +18,14 @@ using namespace std;
 SymbolTable::SymbolTable(string name) {
     parent = NULL;
     this->name = name;
+   // cout << "Symbol table '" << name << "' created." << endl;
 }
 
 
 SymbolTable::~SymbolTable() {
     SymbolTable* child;
     size_t count = getChildCount();
+   // cout << "Symbol table '" << name << "' and " << count << " child deleted." << endl;
     for (int i = 0; i < count; i++) {
         child = getChildAt(i);
         delete child;
