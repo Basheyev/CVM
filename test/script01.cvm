@@ -1,7 +1,7 @@
 
 int main() { 
    int a, b;
-   a = 1 << 7;
-   b = a | 127;
-   iput(b);
+   a = (~(!(~(-2)))) * -128;
+   iput(a);
+   return a;
 }

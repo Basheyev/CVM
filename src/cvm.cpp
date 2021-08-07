@@ -25,12 +25,12 @@ void compilerTest() {
 		return;
 	}
 	
-	auto start = std::chrono::high_resolution_clock::now();
+	
 	SourceParser* parser = new SourceParser(source.getData());
-	auto end = std::chrono::high_resolution_clock::now();
-	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
 	TreeNode *root = parser->getSyntaxTree();
+
+	if (root == NULL) return;
+
 	ExecutableImage* img = new ExecutableImage();
 	CodeGenerator *codeGenerator = new CodeGenerator();
 	codeGenerator->generateCode(img, parser->getSyntaxTree());
@@ -40,9 +40,14 @@ void compilerTest() {
 	}
 	img->disassemble();
 	
+
 	VirtualMachine* machine = new VirtualMachine();
 	machine->loadImage(*img);
+	auto start = std::chrono::high_resolution_clock::now();
 	machine->execute();
+	auto end = std::chrono::high_resolution_clock::now();
+	auto ms_int = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+	cout << "EXECUTION TIME: " << ms_int / 1000000000.0 << "s" << endl;
 	delete machine;
 	delete img;
 	delete codeGenerator;

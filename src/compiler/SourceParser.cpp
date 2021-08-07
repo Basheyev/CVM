@@ -526,17 +526,15 @@ TreeNode* SourceParser::parseBitwise(SymbolTable* scope) {
 //---------------------------------------------------------------------------
 TreeNode* SourceParser::parseFactor(SymbolTable* scope) {
 
-    // TODO add constant to symbol table 
-
     TreeNode* factor = NULL;
     bool unaryMinus = false;
+    bool bitwiseNot = false;
+    bool logicalNot = false;
 
     if (isTokenType(TokenType::MINUS)) { unaryMinus = true; next(); }
-    else
-        if (isTokenType(TokenType::PLUS)) { unaryMinus = false; next(); }
-        else {
-            // TODO add unary Not operator	
-        }
+    else if (isTokenType(TokenType::PLUS)) { unaryMinus = false; next(); }
+    else if (isTokenType(TokenType::NOT)) { bitwiseNot = true; next(); } 
+    else if (isTokenType(TokenType::LOGIC_NOT)) { logicalNot = true; next(); }
 
     if (isTokenType(TokenType::OP_PARENTHESES)) {
         next();
@@ -544,30 +542,37 @@ TreeNode* SourceParser::parseFactor(SymbolTable* scope) {
         Token token = getToken();
         if (isTokenType(TokenType::CL_PARENTHESES)) next();
         else raiseError("Closing parentheses expected");
-    }
-    else if (isTokenType(TokenType::CONST_INTEGER)) {
+    } else if (isTokenType(TokenType::CONST_INTEGER)) {
         factor = new TreeNode(getToken(), TreeNodeType::CONSTANT, scope); next();
-    }
-    else if (isTokenType(TokenType::IDENTIFIER)) {
+    } else if (isTokenType(TokenType::IDENTIFIER)) {
         Token nextToken = getNextToken();
         if (nextToken.type == TokenType::OP_PARENTHESES) {
             factor = parseCall(scope); next();
-        }
-        else {
+        } else {
             factor = new TreeNode(getToken(), TreeNodeType::SYMBOL, scope); 
             if (scope->lookupSymbol(getToken()) == NULL) {
                 raiseError("Symbol not defined.");
             }
             next();
         }
-    }
-    else raiseError("Number or identifier expected");
+    } else raiseError("Number or identifier expected");
 
     if (unaryMinus) {
-        Token token = getToken();
         TreeNode* expr = new TreeNode(TKN_MINUS, TreeNodeType::BINARY_OP, scope);
         TreeNode* zero = new TreeNode(TKN_ZERO, TreeNodeType::CONSTANT, scope);
         expr->addChild(zero);
+        expr->addChild(factor);
+        return expr;
+    }
+
+    if (bitwiseNot) {
+        TreeNode* expr = new TreeNode(TKN_BITWISE_NOT, TreeNodeType::UNARY_OP, scope);
+        expr->addChild(factor);
+        return expr;
+    }
+
+    if (logicalNot) {
+        TreeNode* expr = new TreeNode(TKN_LOGICAL_NOT, TreeNodeType::UNARY_OP, scope);
         expr->addChild(factor);
         return expr;
     }

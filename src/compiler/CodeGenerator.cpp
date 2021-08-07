@@ -210,17 +210,23 @@ void CodeGenerator::emitAssignment(ExecutableImage* img, TreeNode* assignment) {
 
 void CodeGenerator::emitExpression(ExecutableImage* img, TreeNode* node) {
     size_t childCount = node->getChildCount();
-    if (node->getType()==TreeNodeType::SYMBOL) {
+    if (node->getType() == TreeNodeType::SYMBOL) {
         emitSymbol(img, node);
-    } else if (node->getType() == TreeNodeType::CONSTANT) {
+    }
+    else if (node->getType() == TreeNodeType::CONSTANT) {
         Token token = node->getToken();
         string str;
         str.append(token.text, token.length);
         WORD value = stoi(str);
-        img->emit(OP_CONST, value);    
-    } else if (node->getType() == TreeNodeType::BINARY_OP && childCount == 2) {
+        img->emit(OP_CONST, value);
+    }
+    else if (node->getType() == TreeNodeType::BINARY_OP && childCount == 2) {
         emitExpression(img, node->getChild(0));
         emitExpression(img, node->getChild(1));
+        getOpCode(img, node->getToken());
+    }
+    else if (node->getType() == TreeNodeType::UNARY_OP && childCount == 1) {
+        emitExpression(img, node->getChild(0));
         getOpCode(img, node->getToken());
     } else if (node->getType() == TreeNodeType::CALL) {
         emitCall(img, node);
@@ -249,63 +255,25 @@ void CodeGenerator::emitSymbol(ExecutableImage* img, TreeNode* node) {
 
 WORD CodeGenerator::getOpCode(ExecutableImage* img, Token& token) {
     switch (token.type) {
-    case TokenType::PLUS: 
-        img->emit(OP_ADD);
-        break;
-    case TokenType::MINUS: 
-        img->emit(OP_SUB);
-        break;
-    case TokenType::MULTIPLY: 
-        img->emit(OP_MUL);
-        break;
-    case TokenType::DIVIDE: 
-        img->emit(OP_DIV);
-        break;
-    case TokenType::EQUAL:
-        img->emit(OP_EQ);
-        break;
-    case TokenType::NOT_EQUAL:
-        img->emit(OP_NE);
-        break;
-    case TokenType::GREATER:
-        img->emit(OP_GR);
-        break;
-    case TokenType::GR_EQUAL:
-        img->emit(OP_GE);
-        break;
-    case TokenType::LESS:
-        img->emit(OP_LS);
-        break;
-    case TokenType::LS_EQUAL:
-        img->emit(OP_LE);
-        break;
-    case TokenType::LOGIC_AND:
-        img->emit(OP_LAND);
-        break;
-    case TokenType::LOGIC_OR:
-        img->emit(OP_LOR);
-        break;
-    case TokenType::LOGIC_NOT:
-        img->emit(OP_LNOT);
-        break;
-    case TokenType::NOT:
-        img->emit(OP_NOT);
-        break;
-    case TokenType::AND:
-        img->emit(OP_AND);
-        break;
-    case TokenType::OR:
-        img->emit(OP_OR);
-        break;
-    case TokenType::XOR:
-        img->emit(OP_XOR);
-        break;
-    case TokenType::SHL:
-        img->emit(OP_SHL);
-        break;
-    case TokenType::SHR:
-        img->emit(OP_SHR);
-        break;
+    case TokenType::PLUS:      img->emit(OP_ADD);  break;
+    case TokenType::MINUS:     img->emit(OP_SUB);  break;
+    case TokenType::MULTIPLY:  img->emit(OP_MUL);  break;
+    case TokenType::DIVIDE:    img->emit(OP_DIV);  break;
+    case TokenType::EQUAL:     img->emit(OP_EQ);   break;
+    case TokenType::NOT_EQUAL: img->emit(OP_NE);   break;
+    case TokenType::GREATER:   img->emit(OP_GR);   break;
+    case TokenType::GR_EQUAL:  img->emit(OP_GE);   break;
+    case TokenType::LESS:      img->emit(OP_LS);   break;
+    case TokenType::LS_EQUAL:  img->emit(OP_LE);   break;
+    case TokenType::LOGIC_AND: img->emit(OP_LAND); break;
+    case TokenType::LOGIC_OR:  img->emit(OP_LOR);  break;
+    case TokenType::LOGIC_NOT: img->emit(OP_LNOT); break;
+    case TokenType::NOT:       img->emit(OP_NOT);  break;
+    case TokenType::AND:       img->emit(OP_AND);  break;
+    case TokenType::OR:        img->emit(OP_OR);   break;
+    case TokenType::XOR:       img->emit(OP_XOR);  break;
+    case TokenType::SHL:       img->emit(OP_SHL);  break;
+    case TokenType::SHR:       img->emit(OP_SHR);  break;
     default:
         cout << "UNKNOWN BINARY OPERATION: ";
         cout.write(token.text, token.length);

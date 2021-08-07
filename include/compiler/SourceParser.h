@@ -75,6 +75,8 @@ namespace vm {
     constexpr Token TKN_BLOCK = { TokenType::NONE, "BLOCK", 5, 0, 0 };
     constexpr Token TKN_ZERO = { TokenType::CONST_INTEGER, "0", 1, 0, 0 };
     constexpr Token TKN_MINUS = { TokenType::MINUS, "-", 1, 0, 0 };
+    constexpr Token TKN_BITWISE_NOT = { TokenType::NOT, "~", 1, 0, 0 };
+    constexpr Token TKN_LOGICAL_NOT = { TokenType::LOGIC_NOT, "!", 1, 0, 0 };
 
     //------------------------------------------------------------------------
     // Symbol table
@@ -129,12 +131,12 @@ namespace vm {
     //------------------------------------------------------------------------
 
     enum class TreeNodeType {
-        UNKNOWN = 0, MODULE, CONSTANT, TYPE, SYMBOL, BINARY_OP, CALL,
+        UNKNOWN = 0, MODULE, CONSTANT, TYPE, SYMBOL, UNARY_OP, BINARY_OP, CALL,
         FUNCTION, BLOCK, ASSIGNMENT, IF_ELSE, WHILE, RETURN
     };
 
     constexpr char* const TREE_NODE_TYPE_MNEMONIC[] = {
-        "UNKNOWN", "MODULE", "CONSTANT", "TYPE", "SYMBOL", "BINARY_OP", "CALL",
+        "UNKNOWN", "MODULE", "CONSTANT", "TYPE", "SYMBOL", "UNARY_OP", "BINARY_OP", "CALL",
         "FUNCTION", "BLOCK", "ASSIGNMENT", "IF_ELSE", "WHILE", "RETURN"
     };
 
