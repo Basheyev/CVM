@@ -24,6 +24,7 @@ namespace vm {
         void generateCode(ExecutableImage* img, TreeNode* rootNode);
         void emitModule(ExecutableImage* img, TreeNode* rootNode);
         void emitFunction(ExecutableImage* img, TreeNode* node);
+        void emitStatement(ExecutableImage* img, TreeNode* body);
         void emitBlock(ExecutableImage* img, TreeNode* body);
         void emitDeclaration(ExecutableImage* img, TreeNode* node);
         void emitCall(ExecutableImage* img, TreeNode* node);

@@ -32,6 +32,8 @@
 
 using namespace vm;
 
+// todo add break statement
+// todo add local variables constant initializer
 
 //-----------------------------------------------------------------------------
 // Constructor - builds source code abstract syntax tree
@@ -70,44 +72,63 @@ SourceParser::~SourceParser() {
 //-----------------------------------------------------------------------------
 void SourceParser::parseToTokens(const char* sourceCode) {
 
-    tokens.clear();                                                    // clear tokens vector
-    int length;                                                        // token length variable
-    int row = 1, col = 1;                                              // reset current row, col counter
-    char* cursor = (char*)sourceCode;                                  // set cursor to source beginning
-    char* newLine = cursor;                                            // new line pointer
-    char* start = cursor;                                              // start new token from cursor
-    char value = *cursor;                                              // read first char from cursor
-    char nextChar;                                                     // next char variable
-    bool insideString = false;                                         // inside string flag
+    tokens.clear();                                                        // clear tokens vector
+    int length;                                                            // token length variable
+    int row = 1, col = 1;                                                  // reset current row, col counter
+    char* cursor = (char*)sourceCode;                                      // set cursor to source beginning
+    char* newLine = cursor;                                                // new line pointer
+    char* start = cursor;                                                  // start new token from cursor
+    char value = *cursor;                                                  // read first char from cursor
+    char nextChar;                                                         // next char variable
+    bool insideString = false;                                             // inside string flag
+    bool insideComment = false;                                            // inside comment flag
 
-    while (value != NULL) {                                            // while not end of string (NULL)
-        length = (int) (cursor - start);                               // measure token length
-        if ((isBlank(value) || isDelimeter(value)) && !insideString) { // if there is token separator  
-            if (value == '\n') {                                       // if new line '\n' found 
-                row++; col = 1;                                        // increment row, reset col
-                newLine = cursor + 1;                                  // set new line pointer
+    while (value != NULL) {                                                // while not end of string (NULL)
+        length = (int) (cursor - start);                                   // measure token length
+        if (!insideComment) {                                              // if we are not inside comment
+            if ((isBlank(value) || isDelimeter(value)) && !insideString) { // if there is token separator  
+                if (value == '\n') {                                       // if new line '\n' found 
+                    row++; col = 1;                                        // increment row, reset col
+                    newLine = cursor + 1;                                  // set new line pointer
+                    insideComment = false;                                 // reset insideComment flag
+                }
+                if (length > 0) pushToken(start, length, row, col);        // if length > 0 push token to vector
+                nextChar = cursor[1];                                      // get next char after cursor
+                if (isDelimeter(value) && isDelimeter(nextChar)) {         // if next char is also delimeter
+                    if (value != '/' && nextChar != '/') {                 // if it's not '//' comment
+                        if (!pushToken(cursor, 2, row, col))               // try to push double char delimeter token
+                            pushToken(cursor, 1, row, col);                // if not pushed - its single char delimeter
+                        else cursor++;                                     // if double delimeter, increment cursor
+                    } else insideComment = true;                           // set insideComment flag
+                }  else pushToken(cursor, 1, row, col);                    // else push single char delimeter
+                start = cursor + 1;                                        // calculate next token start pointer
+                col = (int)(start - newLine + 1);                          // calculate token start column
+            } else if (value == '"') insideString = !insideString;         // if '"' char - flip insideString flag 
+            else if (insideString && value == '\n') {                      // if '\n' found inside string
+                Token tkn{ TokenType::UNKNOWN,start,length,row,col };      // use token information
+                raiseError(tkn, "Can't use '\\n' in string constant.");    // and throw exception
             }
-            if (length > 0) pushToken(start, length, row, col);        // if length > 0 push token to vector
-            nextChar = cursor[1];                                      // get next char after cursor
-            if (isDelimeter(value) && isDelimeter(nextChar)) {         // if next char is also delimeter
-                if (!pushToken(cursor, 2, row, col))                   // try to push double char delimeter token
-                    pushToken(cursor, 1, row, col);                    // if not pushed - its single char delimeter
-                else cursor++;                                         // if double delimeter, increment cursor
-            } else pushToken(cursor, 1, row, col);                     // else push single char delimeter
-            start = cursor + 1;                                        // calculate next token start pointer
-            col = (int) (start - newLine + 1);                         // calculate token start column
+        } else if (insideComment && value == '\n') {                       // if comment terminated '\n' character
+            insideComment = false;                                         // reset insideComment flag
+            row++; col = 1;                                                // increment row, reset col
+            newLine = cursor + 1;                                          // set new line pointer
+            start = cursor + 1;                                            // calculate next token start pointer
+            col = (int)(start - newLine + 1);                              // calculate token start column
         }
-        else if (value == '"') insideString = !insideString;           // if '"' char - flip insideString flag 
-        else if (insideString && value == '\n') {                      // if '\n' found inside string
-            Token tkn{TokenType::UNKNOWN,start,length,row,col};        // use token information
-            raiseError(tkn, "Can't use '\\n' in in string constant."); // and throw exception
-        }
-        cursor++;                                                      // increment cursor pointer
-        value = *cursor;                                               // read next char
+        cursor++;                                                          // increment cursor pointer
+        value = *cursor;                                                   // read next char
     }
 
-    length = (int) (cursor - start);                                   // if there is a last token
-    if (length > 0) pushToken(start, length, row, col);                // push last token to vector
+    if (insideString) {
+        length = (int)(cursor - start);                                    // if there is a last token
+        Token tkn{ TokenType::UNKNOWN,start,length,row,col };              // use token information
+        raiseError(tkn, "String constant not closed by '\"' character.");
+    }
+
+    if (!insideComment) {
+        length = (int)(cursor - start);                                    // if there is a last token
+        if (length > 0) pushToken(start, length, row, col);                // push last token to vector
+    }
 }
 
 
@@ -185,10 +206,12 @@ void SourceParser::buildSyntaxTree() {
     // add iput system function
     Token iput = { TokenType::IDENTIFIER, "iput", 4, 0,0 };
     rootSymbolTable.addSymbol(iput, SymbolType::FUNCTION);
+    rootSymbolTable.lookupSymbol(iput)->argCount = 1;
 
     // add iget system function
     Token iget = { TokenType::IDENTIFIER, "iget", 4, 0,0 };
     rootSymbolTable.addSymbol(iget, SymbolType::FUNCTION);
+    rootSymbolTable.lookupSymbol(iget)->argCount = 1;
     
     root = parseModule(&rootSymbolTable);
 }
@@ -258,6 +281,10 @@ TreeNode* SourceParser::parseFunction(SymbolTable* scope) {
         arguments->addChild(parseArgument(blockSymbols));
     }
     next();
+
+    // update params count
+    Symbol* func = scope->lookupSymbol(function->getToken());
+    func->argCount = arguments->getChildCount();
 
     TreeNode* functionBody = parseBlock(blockSymbols, true);
     function->addChild(returnType);
@@ -346,9 +373,12 @@ TreeNode* SourceParser::parseStatement(SymbolTable* scope) {
 //---------------------------------------------------------------------------
 TreeNode* SourceParser::parseCall(SymbolTable* scope) {
     Token identifier = getToken();
-    if (scope->lookupSymbol(identifier) == NULL) {
-        raiseError("Symbol not defined.");
+
+    Symbol* func = scope->lookupSymbol(identifier);
+    if (func == NULL || func->type != SymbolType::FUNCTION) {
+        raiseError("Function not defined.");
     }
+
     TreeNode* callNode = new TreeNode(identifier, TreeNodeType::CALL, scope); next();
     if (!isTokenType(TokenType::OP_PARENTHESES)) raiseError("Opening parentheses '(' expected.");
     while (next()) {
@@ -359,6 +389,13 @@ TreeNode* SourceParser::parseCall(SymbolTable* scope) {
         callNode->addChild(param);
         if (isTokenType(TokenType::CL_PARENTHESES)) break;
     }
+
+    
+    // check arguments count
+    if (callNode->getChildCount() != func->argCount) {
+        raiseError("Function call arguments count doesn't match function declaration");
+    }
+
     return callNode;
 }
 

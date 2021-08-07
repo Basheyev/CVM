@@ -6,15 +6,6 @@
 *
 ============================================================================*/
 
-// Questions
-// 1. How to replace symbols by addresses?
-// 2. How to layout code in image?
-//    a) Maybe generate vector of opcode of body for each function (with symbols)
-//    b) Collect all variables and constants in symbol table with addresses
-//    c) Replace symbols with addresses
-// 3. I have 3 enumeration sets: OP_CODES, TokenType, NodeType (which one to use add Node to get better code generation?)
-
-
 #include "compiler/CodeGenerator.h"
 
 #include <iostream>
@@ -24,6 +15,9 @@
 using namespace vm;
 using namespace std;
 
+// todo generate local variables at beginning
+// todo add break;
+// todo error info and handling
 
 CodeGenerator::CodeGenerator() {
 
@@ -43,7 +37,7 @@ void CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
         // Lookup entry point address
         SymbolTable* global = rootNode->getSymbolTable();
         Symbol* main = global->lookupSymbol("main", SymbolType::FUNCTION);
-        if (main == NULL) {
+        if (main == NULL || main->argCount != 0) {
             raiseError("No entry point found - int main() function missing.");
         } else {
             // emit uncoditional jump to entry point;
@@ -98,25 +92,23 @@ void CodeGenerator::emitFunction(ExecutableImage* img, TreeNode* node) {
 }
 
 
-// todo emitStatement
+
+void CodeGenerator::emitStatement(ExecutableImage* img, TreeNode* statement) {
+    if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(img, statement);
+    else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(img, statement);
+    else if (statement->getType() == TreeNodeType::RETURN) emitReturn(img, statement);
+    else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(img, statement);
+    else if (statement->getType() == TreeNodeType::WHILE) emitWhile(img, statement);
+    else if (statement->getType() == TreeNodeType::CALL) emitCall(img, statement);
+    else if (statement->getType() == TreeNodeType::BLOCK) emitBlock(img, statement);
+    else raiseError("Unknown structure in syntax tree.");
+}
+
 
 void CodeGenerator::emitBlock(ExecutableImage* img, TreeNode* body) {
-    // emit function body
     for (int j = 0; j < body->getChildCount(); j++) {
         TreeNode* statement = body->getChild(j);
-        if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(img, statement);
-        else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(img, statement);
-        else if (statement->getType() == TreeNodeType::RETURN) emitReturn(img, statement);
-        else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(img, statement);
-        else if (statement->getType() == TreeNodeType::WHILE) emitWhile(img, statement);
-        else if (statement->getType() == TreeNodeType::CALL) emitCall(img, statement);
-        else if (statement->getType() == TreeNodeType::BLOCK) {
-            emitBlock(img, statement);
-        }
-        else {
-            // todo other statements
-            raiseError("Unknown structure in syntax tree.");
-        }
+        emitStatement(img, statement);
     }
 }
 
@@ -161,13 +153,13 @@ void CodeGenerator::emitIfElse(ExecutableImage* img, TreeNode* node) {
     // condition
     emitExpression(img, condition);
     // if
-    emitBlock(&thenCode, thenBlock);                // generate then block code
+    emitStatement(&thenCode, thenBlock);                // generate then block code
     img->emit(OP_IFZERO, thenCode.getSize() + 1 + 2); // +1 operand, +2 jmp [offset]
     // then
     img->emit(thenCode);
     // else
     if (elseBlock != NULL) {
-        emitBlock(&elseCode, elseBlock);
+        emitStatement(&elseCode, elseBlock);
         img->emit(OP_JMP, elseCode.getSize());
         img->emit(elseCode);
     }
@@ -179,7 +171,7 @@ void CodeGenerator::emitWhile(ExecutableImage* img, TreeNode* node) {
     TreeNode* whileBlock = node->getChild(1);
     ExecutableImage conditionCode, whileCode;
     // Generate while block code
-    emitBlock(&whileCode, whileBlock);
+    emitStatement(&whileCode, whileBlock);
     // Generate and emit condition expression code
     emitExpression(&conditionCode, condition);
     img->emit(conditionCode);

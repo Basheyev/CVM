@@ -165,6 +165,7 @@ void SymbolTable::printRecursive(int depth) {
         cout << SYMBOL_TYPE_MNEMONIC[(int)entry.type];
         if (entry.type == SymbolType::FUNCTION) {
             cout << " at [" << entry.address << "]";
+            cout << " args=" << entry.argCount;
         } else {
             cout << " #" << entry.localIndex;
         }

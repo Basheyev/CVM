@@ -95,6 +95,8 @@ namespace vm {
         SymbolType type = SymbolType::UNKNOWN;
         WORD localIndex = -1;
         WORD address = -1;
+        WORD argCount = 0;
+        
     };
 
     class SymbolTable {

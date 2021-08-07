@@ -1,24 +1,8 @@
 
-
-int pow(int a, int n) {
-    int acc, i;
-    acc = a;
-    i = n;
-    while (i > 1) {
-       acc = acc * a;
-       i = i - 1;
-    }
-    return acc;
+int f(int n) {
+    return n * n;
 }
 
-
 int main() { 
-   int x;
-   x = pow(130, 2);
-   if (x & 1 == 0) {
-     iput(x);
-   } else {
-     
-   }
-   return x;
+    iput(f(5));
 }

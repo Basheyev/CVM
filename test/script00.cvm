@@ -1,33 +1,25 @@
 
+//----------------------------
+// Factorial
+//----------------------------
 int fact(int n) {
    int x;
    if (n) {
       x = n * fact(n-1);
       iput(x);
       return x;
-   } else {
-      return 1;
-   }
+   } else return 1;
 }
 
-int table(int n) {
-    int i, j;
-    i = n;
-    while (i) {
-        j = n;
-        while (j) {
-            iput(n-i+1);
-            iput(n-j+1);
-            j = j - 1;
-        }
-        i = i - 1;
-    }
-    return n;
-}
-
+//----------------------------
+// Entry point
+//----------------------------
 int main() {
-    int x;
-    x = iget();
-    table(x); 
-	return fact(x);
+    int i;
+    while (i < 12) {
+        i = i + 1;
+    }
+	return fact(i);
 }
+
+"sdsdsdsd

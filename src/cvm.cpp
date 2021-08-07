@@ -18,7 +18,7 @@ using namespace vm;
 
 
 void compilerTest() {
-	SourceFile source("../../../test/script01.cvm");
+	SourceFile source("../../../test/script00.cvm");
 	cout << filesystem::current_path() << endl;
 	if (source.getData()==NULL) {
 		cout << "File not open." << endl;
