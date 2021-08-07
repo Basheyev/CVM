@@ -1,11 +1,32 @@
-int factorial(int n) {
+
+int table(int n) {
+    int i, j;
+    i = n;
+    while (i) {
+        j = n;
+        while (j) {
+            iput(n-i+1);
+            iput(n-j+1);
+            j = j - 1;
+        }
+        i = i - 1;
+    }
+}
+
+int fact(int n) {
+   int x;
    if (n) {
-      return n * factorial(n-1);
+      x = n * fact(n-1);
+      iput(x);
+      return x;
    } else {
       return 1;
    }
 }
 
 int main() { 
-   return factorial(5);
+   int x;
+   x = iget();
+   iput(x * 2);
+   return x * 2;
 }

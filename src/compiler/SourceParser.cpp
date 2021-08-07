@@ -184,6 +184,10 @@ void SourceParser::buildSyntaxTree() {
     // add iput system function
     Token iput = { TokenType::IDENTIFIER, "iput", 4, 0,0 };
     rootSymbolTable.addSymbol(iput, SymbolType::FUNCTION);
+
+    // add iget system function
+    Token iget = { TokenType::IDENTIFIER, "iget", 4, 0,0 };
+    rootSymbolTable.addSymbol(iget, SymbolType::FUNCTION);
     
     root = parseModule(&rootSymbolTable);
 }

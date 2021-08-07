@@ -58,7 +58,7 @@ void VirtualMachine::execute() {
 
 fetch: 
 
-	// printState();
+	//printState();
 
 	switch (memory[ip++]) {
 		//------------------------------------------------------------------------
@@ -146,29 +146,9 @@ fetch:
 		case OP_JMP:
 			ip += memory[ip];
 			goto fetch;
-		case OP_IFEQ:
+		case OP_IFZERO:
 			a = memory[sp++];
 			if (a == 0) ip += memory[ip]; else ip++;
-			goto fetch;
-		case OP_IFNE:
-			a = memory[sp++];
-			if (a != 0) ip += memory[ip]; else ip++;
-			goto fetch;
-		case OP_IFGR:
-			a = memory[sp++];
-			if (a > 0) ip += memory[ip]; else ip++;
-			goto fetch;
-		case OP_IFGE:
-			a = memory[sp++];
-			if (a >= 0) ip += memory[ip]; else ip++;
-			goto fetch;
-		case OP_IFLS:
-			a = memory[sp++];
-			if (a < 0) ip += memory[ip]; else ip++;
-			goto fetch;
-		case OP_IFLE:
-			a = memory[sp++];
-			if (a <= 0) ip += memory[ip]; else ip++;
 			goto fetch;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
@@ -244,6 +224,10 @@ void VirtualMachine::sysCall(WORD n) {
 	case 0x21:  // print int from TOS
 		a = memory[sp++];
 		cout << a << endl;
+		return;
+	case 0x22:
+		cin >> a;
+		memory[--sp] = a;
 		return;
 	}
 }

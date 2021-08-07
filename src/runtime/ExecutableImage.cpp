@@ -131,6 +131,13 @@ void ExecutableImage::writeData(WORD address, void* data, WORD bytesCount) {
 	memcpy(image.data() + address, data, bytesCount);
 }
 
+//-----------------------------------------------------------------------------
+// Reads WORD from executable image at specified EmitAddress
+//-----------------------------------------------------------------------------
+WORD ExecutableImage::readWord(WORD address) {
+	return image[address];
+}
+
 
 //-----------------------------------------------------------------------------
 // Returns pointer to executable image
@@ -208,12 +215,7 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		// FLOW CONTROL OPERATIONS
 		//------------------------------------------------------------------------
 		case OP_JMP:    cout << "jmp     [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFEQ:   cout << "ifeq    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFNE:   cout << "ifne    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFGR:   cout << "ifgr    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFGE:   cout << "ifge    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFLS:   cout << "ifls    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_IFLE:   cout << "ifle    [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
+		case OP_IFZERO:   cout << "ifzero  [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
 		//------------------------------------------------------------------------
 		// PROCEDURE CALL OPERATIONS
 		//------------------------------------------------------------------------
