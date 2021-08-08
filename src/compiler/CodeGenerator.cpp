@@ -122,14 +122,16 @@ void CodeGenerator::emitDeclaration(ExecutableImage* img, TreeNode* node) {
     Token token;
     TreeNode* statement;
     // scan all child blocks and emit variable declaration
-    for (int i = 0; i < node->getChildCount(); i++) {
-        statement = node->getChild(i);
-        if (node->getType() == TreeNodeType::TYPE) {
-            for (int i = 0; i < node->getChildCount(); i++) {
-                token = node->getChild(i)->getToken();
+    for (int j = 0; j < node->getChildCount(); j++) {
+        statement = node->getChild(j);
+        // if it's variable declaratiob
+        if (statement->getType() == TreeNodeType::TYPE) {
+            for (int i = 0; i < statement->getChildCount(); i++) {
+                token = statement->getChild(i)->getToken();
                 img->emit(OP_CONST, 0);
             }
         } else if (node->getChildCount() > 0) {
+            // if there are childs - scan recursively
             emitDeclaration(img, statement);
         }
     }

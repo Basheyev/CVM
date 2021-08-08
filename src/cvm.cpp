@@ -21,13 +21,14 @@ void compileRun(string filepath, bool showTree, bool showSymbols, bool disassemb
 
 	// Read source code file
 	SourceFile source(filepath.c_str());
-	cout << "Current patj: " << filesystem::current_path() << endl;
+	cout << "Current path: " << filesystem::current_path() << endl;
 	if (source.getData()==NULL) {
 		cout << "File not open." << endl;
 		return;
 	}
 	
 	// Parse source code
+	ExecutableImage* img = new ExecutableImage();
 	SourceParser* parser = new SourceParser(source.getData());
 	TreeNode *root = parser->getSyntaxTree();
 	if (root == NULL) {
@@ -36,18 +37,22 @@ void compileRun(string filepath, bool showTree, bool showSymbols, bool disassemb
 		return;
 	} else {
 		if (showTree) root->print();
-		if (showSymbols) parser->getSymbolTable().printSymbols();
+		// Generate executable image
+		CodeGenerator* codeGenerator = new CodeGenerator();
+		if (!codeGenerator->generateCode(img, parser->getSyntaxTree())) {
+			cout << "Code generator error. Can not generate code.";
+			delete codeGenerator;
+			delete img;
+			return;
+		} else {
+			if (showSymbols) parser->getSymbolTable().printSymbols();
+			if (disassemble) img->disassemble();
+			delete codeGenerator;
+			delete parser;
+		}
 	}
 
-	// Generate executable image
-	ExecutableImage* img = new ExecutableImage();
-	CodeGenerator *codeGenerator = new CodeGenerator();
-	if (!codeGenerator->generateCode(img, parser->getSyntaxTree())) {
-		cout << "Code generator error. Can not generate code.";
-		delete codeGenerator;
-		delete img;
-		return;
-	} else if (disassemble) img->disassemble();
+	;
 	
 	// Run executable image
 	if (run) {
@@ -62,15 +67,14 @@ void compileRun(string filepath, bool showTree, bool showSymbols, bool disassemb
 	}
 	
 	delete img;
-	delete codeGenerator;
-	delete parser;
+
 }
 
 
 int main()
 {
-	compileRun("../../../test/factorial.cvm", true, true, true, true);
-	//compileRun("../../../test/primenumber.cvm", true, true, true, true);
+	//compileRun("../../../test/factorial.cvm", true, true, true, true);
+	compileRun("../../../test/primenumber.cvm", true, true, true, true);
 	//compileRun("../../../test/combinatorics.cvm", true, true, true, true);
 	//compileRun("../../../test/scope.cvm", true, true, true, true);
 	return 0;
