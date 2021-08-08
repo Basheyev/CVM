@@ -17,9 +17,9 @@ using namespace vm;
 
 
 
-void compilerTest() {
-	SourceFile source("../../../test/script00.cvm");
-	cout << filesystem::current_path() << endl;
+void compileRun(string filepath) {
+	SourceFile source(filepath.c_str());
+	cout << "CURRENT DIR: " << filesystem::current_path() << endl;
 	if (source.getData()==NULL) {
 		cout << "File not open." << endl;
 		return;
@@ -57,7 +57,8 @@ void compilerTest() {
 
 int main()
 {
-	compilerTest();
+	//compileRun("../../../test/factorial.cvm");
+	compileRun("../../../test/primenumber.cvm");
 
 	return 0;
 }

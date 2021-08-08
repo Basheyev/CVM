@@ -192,7 +192,6 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		case OP_CONST:	cout << "iconst  " << image[ip++]; break;
 		case OP_PUSH:   cout << "ipush   [" << image[ip++] << "]"; break;
 		case OP_POP:    cout << "ipop    [" << image[ip++] << "]"; break;
-		case OP_DUP:    cout << "idup    " ; break;
 		//------------------------------------------------------------------------
 		// ARITHMETIC OPERATIONS
 		//------------------------------------------------------------------------
@@ -237,7 +236,6 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		case OP_LOAD:	cout << "iload   #" << image[ip++]; break;
 		case OP_STORE:	cout << "istore  #" << image[ip++]; break;
 		case OP_ARG:	cout << "iarg    #" << image[ip++]; break;
-		case OP_DROP:	cout << "idrop   "; break;
 	default:
 		cout << "0x" << setbase(16) << opcode << setbase(10);
 	}

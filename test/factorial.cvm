@@ -20,8 +20,8 @@ int fact(int n) {
 int main() {
     int n, i;
     i = 1;
-    while (i<=9) {
-        if (i<6) {
+    while (i<=100) {
+        if (i<12) {
             n = fact(i);
             iput(n);
             i = i + 1;

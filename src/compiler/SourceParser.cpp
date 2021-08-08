@@ -382,6 +382,7 @@ TreeNode* SourceParser::parseCall(SymbolTable* scope) {
     Symbol* func = scope->lookupSymbol(identifier);
     if (func == NULL || func->type != SymbolType::FUNCTION) {
         raiseError("Function not defined.");
+        return NULL;
     }
 
     TreeNode* callNode = new TreeNode(identifier, TreeNodeType::CALL, scope); next();

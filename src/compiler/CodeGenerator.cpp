@@ -11,15 +11,15 @@
 #include <iostream>
 #include <cstring>
 
-
 using namespace vm;
 using namespace std;
 
-constexpr WORD MAGIC_BREAK = 0xFFFFFFFF;
-
 // todo generate local variables at beginning
-// todo add break;
 // todo error info and handling
+
+constexpr WORD MAGIC_BREAK = 0xFFFFFFFF;
+constexpr WORD JUMP_OFFSET = 2;
+
 
 CodeGenerator::CodeGenerator() {
 
@@ -60,25 +60,25 @@ void CodeGenerator::emitModule(ExecutableImage* img, TreeNode* rootNode) {
     for (int i = 0; i < rootNode->getChildCount(); i++) {
         TreeNode* node = rootNode->getChild(i);
         if (node->getType() == TreeNodeType::FUNCTION) {
-            // set function address
-            Token tkn = node->getToken();
-            Symbol* symbol = node->getSymbolTable()->lookupSymbol(tkn);
-            symbol->address = img->getEmitAddress();
             // emit function code
             emitFunction(img, node);
         } else if (node->getType() == TreeNodeType::TYPE) {
             // emit global variables to image
-            ExecutableImage data;
-            emitDeclaration(&data, node);
+            // ExecutableImage data;
+            // emitDeclaration(&data, node);
             // todo global variables ...            
         }
     }
 }
 
 
-// Node Childs: #0 - type, #1 - arguments, #2 - function body
+ 
 void CodeGenerator::emitFunction(ExecutableImage* img, TreeNode* node) {
-    //Token name = node->getToken();
+    // set function address in symbols table
+    Token tkn = node->getToken();
+    Symbol* symbol = node->getSymbolTable()->lookupSymbol(tkn);
+    symbol->address = img->getEmitAddress();
+    // Child nodes: #0 - return type, #1 - arguments, #2 - function body
     TreeNode* returnType = node->getChild(0);
     TreeNode* arguments = node->getChild(1);
     TreeNode* body = node->getChild(2);
@@ -96,22 +96,24 @@ void CodeGenerator::emitFunction(ExecutableImage* img, TreeNode* node) {
 
 
 void CodeGenerator::emitStatement(ExecutableImage* img, TreeNode* statement) {
-    if (statement->getType() == TreeNodeType::TYPE) emitDeclaration(img, statement);
-    else if (statement->getType() == TreeNodeType::ASSIGNMENT) emitAssignment(img, statement);
-    else if (statement->getType() == TreeNodeType::RETURN) emitReturn(img, statement);
-    else if (statement->getType() == TreeNodeType::BREAK) emitBreak(img, statement);
-    else if (statement->getType() == TreeNodeType::IF_ELSE) emitIfElse(img, statement);
-    else if (statement->getType() == TreeNodeType::WHILE) emitWhile(img, statement);
-    else if (statement->getType() == TreeNodeType::CALL) emitCall(img, statement);
-    else if (statement->getType() == TreeNodeType::BLOCK) emitBlock(img, statement);
-    else raiseError("Unknown structure in syntax tree.");
+    switch (statement->getType()) {
+    case TreeNodeType::TYPE:       emitDeclaration(img, statement); break;
+    case TreeNodeType::ASSIGNMENT: emitAssignment(img, statement); break;
+    case TreeNodeType::RETURN:     emitReturn(img, statement); break;
+    case TreeNodeType::BREAK:      emitBreak(img, statement); break;
+    case TreeNodeType::IF_ELSE:    emitIfElse(img, statement); break;
+    case TreeNodeType::WHILE:      emitWhile(img, statement); break;
+    case TreeNodeType::CALL:       emitCall(img, statement); break;
+    case TreeNodeType::BLOCK:      emitBlock(img, statement); break;
+    default: raiseError("Unknown structure in syntax tree.");
+    }
 }
 
 
 void CodeGenerator::emitBlock(ExecutableImage* img, TreeNode* body) {
-    for (int j = 0; j < body->getChildCount(); j++) {
-        TreeNode* statement = body->getChild(j);
-        emitStatement(img, statement);
+    size_t count = body->getChildCount();
+    for (int j = 0; j < count; j++) {
+        emitStatement(img, body->getChild(j));
     }
 }
 
@@ -127,21 +129,23 @@ void CodeGenerator::emitDeclaration(ExecutableImage* img, TreeNode* node) {
 
 
 void CodeGenerator::emitCall(ExecutableImage* img, TreeNode* node) {
+    
+    // look up function name in symbols table
+    Token funcToken = node->getToken();
+    Symbol* func = node->getSymbolTable()->lookupSymbol(funcToken);
+    if (func == NULL || func->type != SymbolType::FUNCTION) raiseError("Function not found.");
+
+    // emit arguments expressions
     for (int i = 0; i < node->getChildCount(); i++) {
         emitExpression(img, node->getChild(i));
     }
-
-    Token funcToken = node->getToken();
+        
+    // todo make proper system call labeling in syntax tree
     // system function
     if (funcToken.length == 4 && strncmp(funcToken.text, "iput", 4) == 0) img->emit(OP_SYSCALL, 0x21); else
     if (funcToken.length == 4 && strncmp(funcToken.text, "iget", 4) == 0) img->emit(OP_SYSCALL, 0x22); 
     else {
         // user function
-        Symbol* func = node->getSymbolTable()->lookupSymbol(funcToken);
-        if (func == NULL || func->type != SymbolType::FUNCTION) {
-            raiseError("Function not found.");
-            return;
-        }
         WORD funcAddress = func->address;
         img->emit(OP_CALL, funcAddress, (WORD) node->getChildCount());
     }
@@ -152,22 +156,29 @@ void CodeGenerator::emitIfElse(ExecutableImage* img, TreeNode* node) {
     TreeNode* condition = node->getChild(0);
     TreeNode* thenBlock = node->getChild(1);
     TreeNode* elseBlock = node->getChild(2);
-    ExecutableImage thenCode, elseCode;
-    // condition
-    emitExpression(img, condition);
-    // if
+    ExecutableImage conditionCode, thenCode, elseCode;
+    WORD offset;
+    
+    emitExpression(&conditionCode, condition);          // generate condition code
     emitStatement(&thenCode, thenBlock);                // generate then block code
-    WORD offset = thenCode.getSize() + 1;
-    if (elseBlock != NULL) offset += 2;                 // +2 word of else skip jump ops
-    img->emit(OP_IFZERO,  offset);                      // +1 operand 
-    // then
+    if (elseBlock) emitStatement(&elseCode, elseBlock); // generate else block code if exist
+
+    // IF: emit conditional jump code
+    offset = thenCode.getSize() + 1;                    // calculate next address after then block 
+    if (elseBlock) offset += JUMP_OFFSET;               // if there is an else block add JMP offset
+    img->emit(conditionCode);
+    img->emit(OP_IFZERO, offset);                      
+
+    // THEN: emit then block code
     img->emit(thenCode);
-    // else
-    if (elseBlock != NULL) {
-        emitStatement(&elseCode, elseBlock);
-        img->emit(OP_JMP, elseCode.getSize() + 1);      // +1 operand +2 else skip jump
-        img->emit(elseCode);
+    if (elseBlock) {                                    // if there is an else block
+        offset = elseCode.getSize() + 1;                // calculate next address after else block
+        img->emit(OP_JMP, offset);                      // emit unconditional jump over else block
     }
+
+    // ELSE: emit else block code
+    if (elseBlock) img->emit(elseCode);
+
 }
 
 
@@ -176,40 +187,48 @@ void CodeGenerator::emitWhile(ExecutableImage* img, TreeNode* node) {
     TreeNode* whileBlock = node->getChild(1);
     ExecutableImage conditionCode, whileCode;
     // Generate while block code
-    emitStatement(&whileCode, whileBlock);
-    // Generate and emit condition expression code
-    emitExpression(&conditionCode, condition);
+    emitStatement(&whileCode, whileBlock);     
+    // Generate condition expression code
+    emitExpression(&conditionCode, condition);     
+    // Calculate next address after while block 
+    WORD jumpOut = whileCode.getSize() + JUMP_OFFSET + 1; 
+    
+    // Emit coniditional jump
     img->emit(conditionCode);
-    // +1 operand, +2 jmp [offset]
-    WORD jumpOut = whileCode.getSize() + 1 + 2;
     img->emit(OP_IFZERO, jumpOut);
 
-    // search BREAK statements and replace with relative jump out
+    // Replace in while block code MAGIC_BREAK with relative jump out
+    WORD whileCodeSize = whileCode.getSize();
     WORD w1, w2, offset;
-    for (int i = 0; i < whileCode.getSize() - 1; i++) {
+    for (int i = 0; i < whileCodeSize - 1; i++) {
         w1 = whileCode.readWord(i);
         w2 = whileCode.readWord(i + 1);
         if (w1 == MAGIC_BREAK && w2 == MAGIC_BREAK) {
-            offset = jumpOut - i - 2;
+            offset = jumpOut - i - JUMP_OFFSET;
             whileCode.writeWord(i, OP_JMP);
             whileCode.writeWord(i + 1, offset);
         }
     }
 
-    // Emit while block statements
+    // Emit while block code to image
     img->emit(whileCode);                            
-    // unconditional jump back to condition expression 
-    img->emit(OP_JMP, -whileCode.getSize() - conditionCode.getSize() - 1 - 2);      
+    // calculate relative offset to beginning of condition expression 
+    WORD jumpBackOffset = -(whileCode.getSize() + conditionCode.getSize() + JUMP_OFFSET + 1);
+    // Emit unconditional jump to 
+    img->emit(OP_JMP, jumpBackOffset);      
 }
+
 
 void CodeGenerator::emitReturn(ExecutableImage* img, TreeNode* node) {
     emitExpression(img, node->getChild(0));
     img->emit(OP_RET);
 }
 
+
 void CodeGenerator::emitBreak(ExecutableImage* img, TreeNode* node) {
     // reserve space for jump out of While cycle and
     // mark BREAK as two MAGIC_BREAK, MAGIC_BREAK values
+    // for later replacement
     img->emit(MAGIC_BREAK, MAGIC_BREAK);
 }
 
@@ -228,50 +247,55 @@ void CodeGenerator::emitAssignment(ExecutableImage* img, TreeNode* assignment) {
 
 void CodeGenerator::emitExpression(ExecutableImage* img, TreeNode* node) {
     size_t childCount = node->getChildCount();
-    if (node->getType() == TreeNodeType::SYMBOL) {
-        emitSymbol(img, node);
-    }
-    else if (node->getType() == TreeNodeType::CONSTANT) {
-        Token token = node->getToken();
-        string str;
-        str.append(token.text, token.length);
-        WORD value = stoi(str);
-        img->emit(OP_CONST, value);
-    }
-    else if (node->getType() == TreeNodeType::BINARY_OP && childCount == 2) {
+    TreeNodeType type = node->getType();
+    Token token;
+    string integerString;
+    WORD value;
+
+    switch (type) {
+    case TreeNodeType::BINARY_OP:
         emitExpression(img, node->getChild(0));
         emitExpression(img, node->getChild(1));
-        getOpCode(img, node->getToken());
-    }
-    else if (node->getType() == TreeNodeType::UNARY_OP && childCount == 1) {
+        emitOpcode(img, node->getToken());
+        break;
+    case TreeNodeType::UNARY_OP:
         emitExpression(img, node->getChild(0));
-        getOpCode(img, node->getToken());
-    } else if (node->getType() == TreeNodeType::CALL) {
+        emitOpcode(img, node->getToken());
+        break;
+    case TreeNodeType::SYMBOL:
+        emitSymbol(img, node);
+        break;
+    case TreeNodeType::CALL:
         emitCall(img, node);
-    } else {
-        cout << "Error unknown Node" << endl;
+        break;
+    case TreeNodeType::CONSTANT:
+        token = node->getToken();
+        integerString.append(token.text, token.length);
+        value = stoi(integerString);
+        img->emit(OP_CONST, value);
+        break;
+    default:
+        raiseError ("Error unknown abstract syntax tree node");
+        break;
     }
+
 }
 
 
 void CodeGenerator::emitSymbol(ExecutableImage* img, TreeNode* node) {
     Token token = node->getToken();
     TreeNodeType type = node->getType();
-    if (type == TreeNodeType::SYMBOL) {
-        Symbol* entry = node->getSymbolTable()->lookupSymbol(token);
-        if (entry != NULL) {
-            if (entry->type == SymbolType::ARGUMENT) {
-                img->emit(OP_ARG, entry->localIndex);
-            }
-            if (entry->type == SymbolType::VARIABLE) {
-                img->emit(OP_LOAD, entry->localIndex);
-            }
-        }
-    } 
+    Symbol* entry;
+    entry = node->getSymbolTable()->lookupSymbol(token);
+    if (entry != NULL) {
+        if (entry->type == SymbolType::ARGUMENT) img->emit(OP_ARG, entry->localIndex);
+        else if (entry->type == SymbolType::VARIABLE) img->emit(OP_LOAD, entry->localIndex);
+        else raiseError("Variable or argument expected.");
+    } else raiseError("Symbol not declared.");
 }
 
 
-WORD CodeGenerator::getOpCode(ExecutableImage* img, Token& token) {
+WORD CodeGenerator::emitOpcode(ExecutableImage* img, Token& token) {
     switch (token.type) {
     case TokenType::PLUS:      img->emit(OP_ADD);  break;
     case TokenType::MINUS:     img->emit(OP_SUB);  break;
@@ -293,7 +317,7 @@ WORD CodeGenerator::getOpCode(ExecutableImage* img, Token& token) {
     case TokenType::SHL:       img->emit(OP_SHL);  break;
     case TokenType::SHR:       img->emit(OP_SHR);  break;
     default:
-        cout << "UNKNOWN BINARY OPERATION: ";
+        cout << "UNKNOWN OPERATION: ";
         cout.write(token.text, token.length);
         cout << endl;
         break;

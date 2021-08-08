@@ -75,10 +75,6 @@ fetch:
 			a = memory[ip++];
 			memory[a] = memory[sp++]; 
 			break;
-		case OP_DUP:
-			a = memory[sp];
-			memory[--sp] = a;
-			goto fetch;
 		//------------------------------------------------------------------------
 		// ARITHMETIC OPERATIONS
 		//------------------------------------------------------------------------
@@ -238,9 +234,6 @@ fetch:
 			a = memory[ip++];         // read parameter index
 			b = fp - a - 1;           // calculate parameter address
 			memory[--sp] = memory[b]; // push parameter to stack
-			goto fetch;
-		case OP_DROP:                 // pop and drop value from stack
-			sp++;
 			goto fetch;
 		default:
 			cout << "Runtime error - unknown opcode at [" << ip << "]" << endl;

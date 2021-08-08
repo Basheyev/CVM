@@ -35,7 +35,7 @@ namespace vm {
         void emitAssignment(ExecutableImage* img, TreeNode* assignment);
         void emitExpression(ExecutableImage* img, TreeNode* expression);
         void emitSymbol(ExecutableImage* img, TreeNode* node);
-        WORD getOpCode(ExecutableImage* img, Token& token);
+        WORD emitOpcode(ExecutableImage* img, Token& token);
 
     private:
         inline void raiseError(char* msg) { throw CodeGeneratorException{msg }; }
