@@ -4,12 +4,12 @@
 *
 *  Basic C like language grammar:
 * 
-*  <module>      ::= {<declaration>|<function>}*
+*  <module>      ::= {<function>}*
 *  <type>        ::= 'int'
-*  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
 *  <function>    ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
 *  <argument>    ::= <type> <identifier>
 *  <statement>   ::= <block> | <declaration> | <assign> | <if-else> | <while> | <jump> | <call>
+*  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
 *  <block>       ::= '{' {<statement>}* '}'
 *  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
 *  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
@@ -208,10 +208,10 @@ namespace vm {
         TreeNode* parseDeclaration(SymbolTable* scope);
         TreeNode* parseFunction(SymbolTable* scope);
         TreeNode* parseArgument(SymbolTable* scope);
-        TreeNode* parseBlock(SymbolTable* scope, bool isFunction);
-        TreeNode* parseStatement(SymbolTable* scope);
+        TreeNode* parseBlock(SymbolTable* scope, bool isFunction, bool whileBlock);
+        TreeNode* parseStatement(SymbolTable* scope, bool whileBlock);
         TreeNode* parseCall(SymbolTable* scope);
-        TreeNode* parseIfElse(SymbolTable* scope);
+        TreeNode* parseIfElse(SymbolTable* scope, bool whileBlock);
         TreeNode* parseWhile(SymbolTable* scope);
         TreeNode* parseAssignment(SymbolTable* scope);
         TreeNode* parseLogical(SymbolTable* scope);

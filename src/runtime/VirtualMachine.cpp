@@ -143,32 +143,32 @@ fetch:
 		//------------------------------------------------------------------------
 		// LOGICAL (BOOLEAN) OPERATIONS
 		//------------------------------------------------------------------------
-		case OP_EQ:
+		case OP_EQUAL:
 			b = memory[sp++];
 			a = memory[sp++];
 			memory[--sp] = (a == b);
 			goto fetch;
-		case OP_NE:
+		case OP_NEQUAL:
 			b = memory[sp++];
 			a = memory[sp++];
 			memory[--sp] = (a != b);
 			goto fetch;
-		case OP_GR:
+		case OP_GREATER:
 			b = memory[sp++];
 			a = memory[sp++];
 			memory[--sp] = (a > b);
 			goto fetch;
-		case OP_GE:
+		case OP_GREQUAL:
 			b = memory[sp++];
 			a = memory[sp++];
 			memory[--sp] = (a >= b);
 			goto fetch;
-		case OP_LS:
+		case OP_LESS:
 			b = memory[sp++];
 			a = memory[sp++];
 			memory[--sp] = (a < b);
 			goto fetch;
-		case OP_LE:
+		case OP_LSEQUAL:
 			b = memory[sp++];
 			a = memory[sp++];
 			memory[--sp] = (a <= b);

@@ -155,7 +155,6 @@ void SymbolTable::printSymbols() {
 void SymbolTable::printRecursive(int depth) {
     Symbol entry;
     size_t count = getSymbolsCount();
-    // todo print symbols inside tree
     for (int i = 0; i < depth; i++) cout << "\t";
     cout << name << ":" << endl;
     for (int i = 0; i < count; i++) {

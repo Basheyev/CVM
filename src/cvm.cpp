@@ -16,7 +16,7 @@ using namespace std;
 using namespace vm;
 
 
-
+// todo refactor it
 void compileRun(string filepath) {
 	SourceFile source(filepath.c_str());
 	cout << "CURRENT DIR: " << filesystem::current_path() << endl;
@@ -58,7 +58,8 @@ void compileRun(string filepath) {
 int main()
 {
 	//compileRun("../../../test/factorial.cvm");
-	compileRun("../../../test/primenumber.cvm");
-
+	//compileRun("../../../test/primenumber.cvm");
+	compileRun("../../../test/combinatorics.cvm");
+	//compileRun("../../../test/scope.cvm");
 	return 0;
 }

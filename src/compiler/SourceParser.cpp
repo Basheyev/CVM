@@ -4,12 +4,12 @@
 *
 *  Basic C like language grammar:
 *
-*  <module>      ::= {<declaration>|<function>}*
+*  <module>      ::= {<function>}*
 *  <type>        ::= 'int'
-*  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
 *  <function>    ::= <type> <identifier> '(' <argument> {, <argument>}* ')' <block>
 *  <argument>    ::= <type> <identifier>
 *  <statement>   ::= <block> | <declaration> | <assign> | <if-else> | <while> | <jump> | <call>
+*  <declaration> ::= <type> <identifier> {','<identifier>}* ';'
 *  <block>       ::= '{' {<statement>}* '}'
 *  <call>        ::= <identifier> '(' {<expression>} {, expression}* ')'
 *  <if-else>     ::= 'if' '(' <condition> ')' <statement> { 'else' <statement> }
@@ -32,8 +32,7 @@
 
 using namespace vm;
 
-// todo add break statement
-// todo add local variables constant initializer
+// todo check that break statement is in while
 
 //-----------------------------------------------------------------------------
 // Constructor - builds source code abstract syntax tree
@@ -224,12 +223,11 @@ TreeNode* SourceParser::parseModule(SymbolTable* scope) {
     TreeNode* program = new TreeNode(EMPTY_TOKEN, TreeNodeType::MODULE, scope);
     Token functionCheck;
     do {
+        // there must be parentheses after 2 tokens
         functionCheck = getToken(currentToken + 2);
         if (functionCheck.type == TokenType::OP_PARENTHESES) {
             program->addChild(parseFunction(scope));
-        } else {
-            program->addChild(parseDeclaration(scope));
-        }
+        } else raiseError("Function declaration expected.");
     } while (next());
     return program; 
 }
@@ -282,11 +280,12 @@ TreeNode* SourceParser::parseFunction(SymbolTable* scope) {
     }
     next();
 
-    // update params count
+    // save function params count
     Symbol* func = scope->lookupSymbol(function->getToken());
     func->argCount = (WORD) arguments->getChildCount();
 
-    TreeNode* functionBody = parseBlock(blockSymbols, true);
+    TreeNode* functionBody = parseBlock(blockSymbols, true, false);
+
     function->addChild(returnType);
     function->addChild(arguments);
     function->addChild(functionBody);
@@ -315,7 +314,7 @@ TreeNode* SourceParser::parseArgument(SymbolTable* scope) {
 //---------------------------------------------------------------------------
 // <block> ::= '{' {<statement>}* '}'
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction) {
+TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction, bool whileBlock) {
     TreeNode* block = new TreeNode(TKN_BLOCK, TreeNodeType::BLOCK, scope);
     SymbolTable* blockSymbols;
     if (isFunction) blockSymbols = scope; else {
@@ -328,12 +327,7 @@ TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction) {
     while (next()) {
         if (isTokenType(TokenType::CL_BRACES)) break;
         if (isTokenType(TokenType::EOS)) continue;
-        block->addChild(parseStatement(blockSymbols));
-    }
-    // todo check logic
-    if (blockSymbols->getSymbolsCount() == 0) {
-     //   scope->removeChild(blockSymbols);
-      //  block->setSymbolTable(scope);
+        block->addChild(parseStatement(blockSymbols, whileBlock));
     }
     return block;
 }
@@ -343,10 +337,10 @@ TreeNode* SourceParser::parseBlock(SymbolTable* scope, bool isFunction) {
 //---------------------------------------------------------------------------
 // <statement> ::= <block> | <declration> | <assign> | <if-else> | <while> | <jump> | <call>
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseStatement(SymbolTable* scope) {
+TreeNode* SourceParser::parseStatement(SymbolTable* scope, bool whileBlock) {
     Token token = getToken();
     if (isDataType(token.type)) return parseDeclaration(scope); else
-    if (token.type == TokenType::OP_BRACES) return parseBlock(scope, false); else
+    if (token.type == TokenType::OP_BRACES) return parseBlock(scope, false, whileBlock); else
     if (token.type == TokenType::IDENTIFIER) {
         Token nextToken = getNextToken();
         if (nextToken.type == TokenType::ASSIGN) return parseAssignment(scope);
@@ -356,7 +350,7 @@ TreeNode* SourceParser::parseStatement(SymbolTable* scope) {
             return callNode;
         } else raiseError("Unexpected token, assignment '=' or function call expecated.");
     } else
-    if (token.type == TokenType::IF) return parseIfElse(scope); else
+    if (token.type == TokenType::IF) return parseIfElse(scope, whileBlock); else
     if (token.type == TokenType::WHILE) return parseWhile(scope); else
     if (token.type == TokenType::RETURN) {
         TreeNode* returnStmt = new TreeNode(token, TreeNodeType::RETURN, scope); next();
@@ -364,7 +358,7 @@ TreeNode* SourceParser::parseStatement(SymbolTable* scope) {
         returnStmt->addChild(expr);
         return returnStmt;
     } if (token.type == TokenType::BREAK) {
-        // todo check are we in while cycle?
+        if (!whileBlock) raiseError("Can't use 'break' statement outside 'while' cycle.");
         TreeNode* breakStmt = new TreeNode(token, TreeNodeType::BREAK, scope); next();
         return breakStmt;
     }
@@ -409,7 +403,7 @@ TreeNode* SourceParser::parseCall(SymbolTable* scope) {
 //---------------------------------------------------------------------------
 // <if-else> ::= 'if' '(' <expression> ')' <statement> { 'else' <statement> }
 //---------------------------------------------------------------------------
-TreeNode* SourceParser::parseIfElse(SymbolTable* scope) {
+TreeNode* SourceParser::parseIfElse(SymbolTable* scope, bool whileBlock) {
     TreeNode* ifblock = new TreeNode(getToken(), TreeNodeType::IF_ELSE, scope); 
     next();
     checkToken(TokenType::OP_PARENTHESES, "Opening parentheses '(' expected");
@@ -417,10 +411,10 @@ TreeNode* SourceParser::parseIfElse(SymbolTable* scope) {
     ifblock->addChild(parseLogical(scope));
     checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
     next();	
-    ifblock->addChild(parseStatement(scope));
+    ifblock->addChild(parseStatement(scope, whileBlock));
     if (getNextToken().type == TokenType::ELSE) {
         next(); next();
-        ifblock->addChild(parseStatement(scope));
+        ifblock->addChild(parseStatement(scope, whileBlock));
     }
     return ifblock;
 }
@@ -437,7 +431,7 @@ TreeNode* SourceParser::parseWhile(SymbolTable* scope) {
     whileBlock->addChild(parseLogical(scope));
     checkToken(TokenType::CL_PARENTHESES, "Closing parentheses ')' expected");
     next(); 
-    whileBlock->addChild(parseStatement(scope));
+    whileBlock->addChild(parseStatement(scope, true));
     return whileBlock;
 }
 

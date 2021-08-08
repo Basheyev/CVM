@@ -62,11 +62,6 @@ void CodeGenerator::emitModule(ExecutableImage* img, TreeNode* rootNode) {
         if (node->getType() == TreeNodeType::FUNCTION) {
             // emit function code
             emitFunction(img, node);
-        } else if (node->getType() == TreeNodeType::TYPE) {
-            // emit global variables to image
-            // ExecutableImage data;
-            // emitDeclaration(&data, node);
-            // todo global variables ...            
         }
     }
 }
@@ -83,6 +78,10 @@ void CodeGenerator::emitFunction(ExecutableImage* img, TreeNode* node) {
     TreeNode* arguments = node->getChild(1);
     TreeNode* body = node->getChild(2);
     ExecutableImage funCode;
+
+    // elevate all variable declaration to the function beginning
+    emitDeclaration(&funCode, body);
+
     emitBlock(&funCode, body);
     // if no return statment then add return instruction;
     if (funCode.getSize() > 0) {
@@ -97,14 +96,14 @@ void CodeGenerator::emitFunction(ExecutableImage* img, TreeNode* node) {
 
 void CodeGenerator::emitStatement(ExecutableImage* img, TreeNode* statement) {
     switch (statement->getType()) {
-    case TreeNodeType::TYPE:       emitDeclaration(img, statement); break;
+    case TreeNodeType::TYPE:       break; // skip because already emitted
     case TreeNodeType::ASSIGNMENT: emitAssignment(img, statement); break;
-    case TreeNodeType::RETURN:     emitReturn(img, statement); break;
-    case TreeNodeType::BREAK:      emitBreak(img, statement); break;
     case TreeNodeType::IF_ELSE:    emitIfElse(img, statement); break;
     case TreeNodeType::WHILE:      emitWhile(img, statement); break;
     case TreeNodeType::CALL:       emitCall(img, statement); break;
     case TreeNodeType::BLOCK:      emitBlock(img, statement); break;
+    case TreeNodeType::RETURN:     emitReturn(img, statement); break;
+    case TreeNodeType::BREAK:      emitBreak(img, statement); break;
     default: raiseError("Unknown structure in syntax tree.");
     }
 }
@@ -112,18 +111,28 @@ void CodeGenerator::emitStatement(ExecutableImage* img, TreeNode* statement) {
 
 void CodeGenerator::emitBlock(ExecutableImage* img, TreeNode* body) {
     size_t count = body->getChildCount();
+    TreeNode* statement;
     for (int j = 0; j < count; j++) {
-        emitStatement(img, body->getChild(j));
+        statement = body->getChild(j);
+        emitStatement(img, statement);
     }
 }
 
 
 void CodeGenerator::emitDeclaration(ExecutableImage* img, TreeNode* node) {
     Token token;
-    // TODO allocate all space in the beginning (?)
+    TreeNode* statement;
+    // scan all child blocks and emit variable declaration
     for (int i = 0; i < node->getChildCount(); i++) {
-        token = node->getChild(i)->getToken();
-        img->emit(OP_CONST, 0);
+        statement = node->getChild(i);
+        if (node->getType() == TreeNodeType::TYPE) {
+            for (int i = 0; i < node->getChildCount(); i++) {
+                token = node->getChild(i)->getToken();
+                img->emit(OP_CONST, 0);
+            }
+        } else if (node->getChildCount() > 0) {
+            emitDeclaration(img, statement);
+        }
     }
 }
 
@@ -161,7 +170,9 @@ void CodeGenerator::emitIfElse(ExecutableImage* img, TreeNode* node) {
     
     emitExpression(&conditionCode, condition);          // generate condition code
     emitStatement(&thenCode, thenBlock);                // generate then block code
-    if (elseBlock) emitStatement(&elseCode, elseBlock); // generate else block code if exist
+    if (elseBlock) {                                    // if there is else block
+        emitStatement(&elseCode, elseBlock);            // generate else block code
+    }
 
     // IF: emit conditional jump code
     offset = thenCode.getSize() + 1;                    // calculate next address after then block 
@@ -297,25 +308,25 @@ void CodeGenerator::emitSymbol(ExecutableImage* img, TreeNode* node) {
 
 WORD CodeGenerator::emitOpcode(ExecutableImage* img, Token& token) {
     switch (token.type) {
-    case TokenType::PLUS:      img->emit(OP_ADD);  break;
-    case TokenType::MINUS:     img->emit(OP_SUB);  break;
-    case TokenType::MULTIPLY:  img->emit(OP_MUL);  break;
-    case TokenType::DIVIDE:    img->emit(OP_DIV);  break;
-    case TokenType::EQUAL:     img->emit(OP_EQ);   break;
-    case TokenType::NOT_EQUAL: img->emit(OP_NE);   break;
-    case TokenType::GREATER:   img->emit(OP_GR);   break;
-    case TokenType::GR_EQUAL:  img->emit(OP_GE);   break;
-    case TokenType::LESS:      img->emit(OP_LS);   break;
-    case TokenType::LS_EQUAL:  img->emit(OP_LE);   break;
-    case TokenType::LOGIC_AND: img->emit(OP_LAND); break;
-    case TokenType::LOGIC_OR:  img->emit(OP_LOR);  break;
-    case TokenType::LOGIC_NOT: img->emit(OP_LNOT); break;
-    case TokenType::NOT:       img->emit(OP_NOT);  break;
-    case TokenType::AND:       img->emit(OP_AND);  break;
-    case TokenType::OR:        img->emit(OP_OR);   break;
-    case TokenType::XOR:       img->emit(OP_XOR);  break;
-    case TokenType::SHL:       img->emit(OP_SHL);  break;
-    case TokenType::SHR:       img->emit(OP_SHR);  break;
+    case TokenType::PLUS:      img->emit(OP_ADD);     break;
+    case TokenType::MINUS:     img->emit(OP_SUB);     break;
+    case TokenType::MULTIPLY:  img->emit(OP_MUL);     break;
+    case TokenType::DIVIDE:    img->emit(OP_DIV);     break;
+    case TokenType::EQUAL:     img->emit(OP_EQUAL);   break;
+    case TokenType::NOT_EQUAL: img->emit(OP_NEQUAL);  break;
+    case TokenType::GREATER:   img->emit(OP_GREATER); break;
+    case TokenType::GR_EQUAL:  img->emit(OP_GREQUAL); break;
+    case TokenType::LESS:      img->emit(OP_LESS);    break;
+    case TokenType::LS_EQUAL:  img->emit(OP_LSEQUAL); break;
+    case TokenType::LOGIC_AND: img->emit(OP_LAND);    break;
+    case TokenType::LOGIC_OR:  img->emit(OP_LOR);     break;
+    case TokenType::LOGIC_NOT: img->emit(OP_LNOT);    break;
+    case TokenType::NOT:       img->emit(OP_NOT);     break;
+    case TokenType::AND:       img->emit(OP_AND);     break;
+    case TokenType::OR:        img->emit(OP_OR);      break;
+    case TokenType::XOR:       img->emit(OP_XOR);     break;
+    case TokenType::SHL:       img->emit(OP_SHL);     break;
+    case TokenType::SHR:       img->emit(OP_SHR);     break;
     default:
         cout << "UNKNOWN OPERATION: ";
         cout.write(token.text, token.length);

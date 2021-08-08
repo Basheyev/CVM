@@ -15,10 +15,8 @@ add_executable (cvm
 	"include/compiler/SourceFile.h"
 	
 	"src/cvm.cpp" 
-
 	"src/runtime/VirtualMachine.cpp"   
 	"src/runtime/ExecutableImage.cpp"
-
 	"src/compiler/SourceParser.cpp" 
 	"src/compiler/SourceFile.cpp"
 	"src/compiler/TreeNode.cpp" 

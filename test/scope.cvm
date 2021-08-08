@@ -1,0 +1,19 @@
+
+
+
+int main() {
+    int a;
+    {
+       int b;
+       while (b < 5) {
+          int c;
+          b = b + 1;
+          {
+              int d;
+          
+          }
+       }
+       return b;
+       int e;
+    }
+}

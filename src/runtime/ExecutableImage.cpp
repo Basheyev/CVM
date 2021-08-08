@@ -213,12 +213,12 @@ WORD ExecutableImage::printMnemomic(WORD address) {
 		//------------------------------------------------------------------------
 		case OP_JMP:    cout << "jmp     [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
 		case OP_IFZERO: cout << "ifzero  [" << std::showpos << image[ip++] << std::noshowpos << "]"; break;
-		case OP_EQ:     cout << "eq    "; break;
-		case OP_NE:     cout << "ne    "; break;
-		case OP_GR:     cout << "gr    "; break;
-		case OP_GE:     cout << "ge    "; break;
-		case OP_LS:     cout << "ls    "; break;
-		case OP_LE:     cout << "le    "; break;
+		case OP_EQUAL:  cout << "eq       "; break;
+		case OP_NEQUAL: cout << "ne       "; break;
+		case OP_GREATER:cout << "greater  "; break;
+		case OP_GREQUAL:cout << "grequal  "; break;
+		case OP_LESS:   cout << "less     "; break;
+		case OP_LSEQUAL:cout << "lsequal  "; break;
 		case OP_LAND:   cout << "land  "; break;
 		case OP_LOR:    cout << "lor   "; break;
 		case OP_LNOT:   cout << "lnot  "; break;
