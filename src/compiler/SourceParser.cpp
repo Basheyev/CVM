@@ -32,8 +32,6 @@
 
 using namespace vm;
 
-// todo check that break statement is in while
-
 //-----------------------------------------------------------------------------
 // Constructor - builds source code abstract syntax tree
 //-----------------------------------------------------------------------------
@@ -202,12 +200,12 @@ TokenType SourceParser::validateString(char* text, int length) {
 void SourceParser::buildSyntaxTree() {
     currentToken = 0;
 
-    // add iput system function
+    // add iput system function to symbols table (write int to std out)
     Token iput = { TokenType::IDENTIFIER, "iput", 4, 0,0 };
     rootSymbolTable.addSymbol(iput, SymbolType::FUNCTION);
     rootSymbolTable.lookupSymbol(iput)->argCount = 1;
 
-    // add iget system function
+    // add iget system function to symbols table (read int from std in)
     Token iget = { TokenType::IDENTIFIER, "iget", 4, 0,0 };
     rootSymbolTable.addSymbol(iget, SymbolType::FUNCTION);
     rootSymbolTable.lookupSymbol(iget)->argCount = 1;
@@ -223,7 +221,7 @@ TreeNode* SourceParser::parseModule(SymbolTable* scope) {
     TreeNode* program = new TreeNode(EMPTY_TOKEN, TreeNodeType::MODULE, scope);
     Token functionCheck;
     do {
-        // there must be parentheses after 2 tokens
+        // Check: there must be parentheses after 2 tokens (for functions)
         functionCheck = getToken(currentToken + 2);
         if (functionCheck.type == TokenType::OP_PARENTHESES) {
             program->addChild(parseFunction(scope));

@@ -14,7 +14,6 @@
 using namespace vm;
 using namespace std;
 
-// todo generate local variables at beginning
 // todo error info and handling
 
 constexpr WORD MAGIC_BREAK = 0xFFFFFFFF;
@@ -31,7 +30,7 @@ CodeGenerator::~CodeGenerator() {
 }
 
 
-void CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
+bool CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
     try {
         img->clear();                        // clear executable image
         img->setEmitAddress(4);              // reserve 4 memory cells to call main() entry point
@@ -47,16 +46,16 @@ void CodeGenerator::generateCode(ExecutableImage* img, TreeNode* rootNode) {
             img->emit(OP_CALL, main->address, 0);
             img->emit(OP_HALT);
         }
-    }
-    catch (CodeGeneratorException& e) {
+    } catch (CodeGeneratorException& e) {
         cout << "CODE GENERATION ERROR: ";
         cout << e.error << endl;
+        return false;
     }
+    return true;
 }
 
 
 void CodeGenerator::emitModule(ExecutableImage* img, TreeNode* rootNode) {
-    // TODO Sort data and functions (.text, .data)
     for (int i = 0; i < rootNode->getChildCount(); i++) {
         TreeNode* node = rootNode->getChild(i);
         if (node->getType() == TreeNodeType::FUNCTION) {

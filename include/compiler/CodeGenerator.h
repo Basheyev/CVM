@@ -21,7 +21,7 @@ namespace vm {
     public:
         CodeGenerator();
         ~CodeGenerator();
-        void generateCode(ExecutableImage* img, TreeNode* rootNode);
+        bool generateCode(ExecutableImage* img, TreeNode* rootNode);
         void emitModule(ExecutableImage* img, TreeNode* rootNode);
         void emitFunction(ExecutableImage* img, TreeNode* node);
         void emitStatement(ExecutableImage* img, TreeNode* body);
