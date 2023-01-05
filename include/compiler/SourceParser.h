@@ -184,7 +184,7 @@ namespace vm {
         SourceParser(const char* sourceCode);
         ~SourceParser();
         inline size_t getTokenCount() { return tokens.size(); }
-        Token& getToken(size_t index) { return tokens[index]; }
+        Token& getToken(size_t index) { return tokens[index]; }      // FIXME: not sure
         SymbolTable& getSymbolTable() { return rootSymbolTable; }
         TreeNode* getSyntaxTree() { return root; }
     private:
@@ -222,8 +222,8 @@ namespace vm {
         TreeNode* parseFactor(SymbolTable* scope);
 
         inline bool next() { currentToken++; return currentToken < getTokenCount(); }
-        inline Token getToken() { return getToken(currentToken); }
-        inline Token getNextToken() { return getToken(currentToken + 1); }
+        inline Token& getToken() { return getToken(currentToken); }
+        inline Token& getNextToken() { return getToken(currentToken + 1); }
         inline bool isTokenType(TokenType type) { return getToken().type == type; }
 
         inline bool isComparison(TokenType type) { return type >= TokenType::EQUAL && type <= TokenType::LS_EQUAL; }
