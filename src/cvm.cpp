@@ -71,10 +71,16 @@ void compileRun(string filepath, bool showTree, bool showSymbols, bool disassemb
 }
 
 
-int main()
-{
+int main(int argc, char** argv){
+	  if(argc < 1){
+		  puts("No filename was given.");
+		  return 1;
+	  }
+
+
+	compileRun(*(argv + 1), true, true, true, true);
 	//compileRun("../../../test/factorial.cvm", true, true, true, true);
-	compileRun("../../../test/primenumber.cvm", true, true, true, true);
+	//compileRun("../../../test/primenumber.cvm", true, true, true, true);
 	//compileRun("../../../test/combinatorics.cvm", true, true, true, true);
 	//compileRun("../../../test/scope.cvm", true, true, true, true);
 	return 0;
