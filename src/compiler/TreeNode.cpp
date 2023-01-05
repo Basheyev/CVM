@@ -61,7 +61,7 @@ TreeNodeType TreeNode::getType() {
 	return type;
 }
 
-Token TreeNode::getToken() {
+Token& TreeNode::getToken() {
 	return token;
 }
 

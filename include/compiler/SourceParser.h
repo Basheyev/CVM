@@ -150,7 +150,7 @@ namespace vm {
         bool removeChild(TreeNode* node);
         void removeAll();
         TreeNodeType getType();
-        Token getToken();
+        Token &getToken();
         TreeNode* getParent();
         TreeNode* getChild(size_t index);
         size_t getChildCount();
