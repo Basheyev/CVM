@@ -31,7 +31,7 @@
 
 #include <string>
 #include <vector>
-#include "/usr/include/c++/11/cstring"
+#include <cstring>
 
 #include "runtime/VirtualMachine.h"
 
