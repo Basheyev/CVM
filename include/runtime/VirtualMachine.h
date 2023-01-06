@@ -12,12 +12,13 @@
 #pragma once
 
 #include <vector>
+#include <cstdint>
 
 using namespace std;
 
 namespace vm {
 
-	typedef __int32 WORD;
+	typedef int32_t WORD;
 
 	constexpr WORD OP_CODE_MASK = 0b00000000000000000000000011111111;
 	constexpr WORD OP_TYPE_MASK = 0b00000000000000000000111000000000;
